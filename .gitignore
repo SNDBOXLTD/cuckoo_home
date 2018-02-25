@@ -1,2 +1,8 @@
 *.pyc
 .idea/
+cuckoo.db
+monitor/
+storage/
+status/
+conf/
+log/
