@@ -104,6 +104,15 @@ class Thunder(object):
             str(self.port)
         ]
 
+        # RUNDLL32.EXE SETUPAPI.DLL,InstallHinfSection DefaultInstall 132 C:\temp\minimal.inf
+        args_inf_installer = [
+            "RUNDLL32.EXE",
+            "SETUPAPI.DLL,InstallHinfSection",
+            "DefaultInstall",
+            "132",
+            os.path.abspath(os.path.join("bin", self._information_file)),
+        ]
+		
         # Initialize installer command
         # Strike.exe 1 C:\temp\WdfCoinstaller01009.dll C:\temp\minimal.inf C:\temp\thunder.sys
         args_installer = [
@@ -118,10 +127,11 @@ class Thunder(object):
         log.info("Execution args: [%s][%s]" % (args_logs, args_installer))
         try:
             subprocess.check_call(args_logs, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.check_call(args_inf_installer, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             subprocess.check_call(args_installer, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except subprocess.CalledProcessError:
-            log.error("Failed [CalledProcessError] installing driver with command args: [%s][%s]" % (
-            args_logs, args_installer))
+            log.error("Failed [CalledProcessError] installing driver with command args: [%s][%s][%s]" % (
+            args_logs, args_inf_installer, args_installer))
             return False
         log.info("Driver installed successfully")
 
