@@ -277,6 +277,9 @@ class Process(object):
             )
             return False
 
+        if not isinstance(path, unicode):
+            path = unicode(path)
+
         # CloudInfect
         if kernel_mode or True:
             log.warning("THUNDER: kernel_mode activated!, [%s]", kernel_mode)

@@ -7,10 +7,13 @@ import time
 import win32process
 import win32con
 import threading
-
-from lib.common.defines import KERNEL32, GENERIC_READ, GENERIC_WRITE, OPEN_EXISTING
+from ctypes import *
+import ctypes
+from lib.common.defines import STARTUPINFO, PROCESS_INFORMATION
+from lib.common.defines import CREATE_NEW_CONSOLE, CREATE_SUSPENDED
 from lib.common.constants import SHUTDOWN_MUTEX
-#from lib.common.errors import get_error_string
+
+KERNEL32 = ctypes.windll.kernel32
 
 # Set logger
 log = logging.getLogger(__name__)
@@ -137,42 +140,70 @@ class Thunder(object):
 
         return self.initialize()
 
-    def create_monitored_process(self, path, args=None):
+    def create_monitored_process(self, process_path, args=""):
+        """
+        Creating a new process to monitor by the driver.
+        The process will be created in suspended mode, then after the PID will be
+        sent to the driver for further monitoring. When the driver is done
+        initializing, the process can be resumed.
 
-        startupinfo = win32process.STARTUPINFO()
-        startupinfo.dwFlags = win32process.STARTF_USESHOWWINDOW
-        startupinfo.wShowWindow = win32con.SW_NORMAL
+        Parameters:
+            process_path (string), the path of the process to create, unicode
+                string.
+            args (unicode), additional arguments to provide to the process
 
-        command = path
-        if None != args:
-            command += " " + args
+        Return value:
+            list of process parameters: (h_process, h_thread, pid, tid)
+        """
 
-        log.debug("commandline: [%s]", command)
-        hProcess, hThread, dwProcessId, dwThreadId = win32process.CreateProcess(
-            None,
-            command,  # Command
-            None,
-            None,
-            0,
-            win32process.NORMAL_PRIORITY_CLASS | win32process.CREATE_SUSPENDED,
-            None,
-            None,
-            startupinfo)
+        # Initializations
+        startup_info = STARTUPINFO()
+        startup_info.cb = sizeof(startup_info)
+        startup_info.dwFlags = win32process.STARTF_USESHOWWINDOW
+        startup_info.wShowWindow = win32con.SW_NORMAL
 
+        process_info = PROCESS_INFORMATION()
+
+        creation_flags = CREATE_NEW_CONSOLE | CREATE_SUSPENDED
+        # Create new process (UNICODE)
+        success = KERNEL32.CreateProcessW(process_path,
+                                          args,
+                                          None,
+                                          None,
+                                          None,
+                                          creation_flags,
+                                          None,
+                                          None,  # Starting path?
+                                          ctypes.byref(startup_info),
+                                          ctypes.byref(process_info))
+
+        # Check failure
+        if not success:
+            log.error("Process creation failed for process: [%s], error: [%d]", process_path, KERNEL32.GetLastError())
+            return (False, 0, 0, 0, 0)
+
+        # Data
+        h_process, h_thread, pid, tid = process_info.hProcess, process_info.hThread, process_info.dwProcessId, process_info.dwThreadId,
+
+        # Hack to monitor first pid - this process
         try:
-            # Hack to monitor first pid - this process
-            self._send_ioctl(self._driver_communication_device, self._ioctl_monitor, str(dwProcessId))
+            self._send_ioctl(self._driver_communication_device, self._ioctl_monitor, str(pid))
+            pass
         except Exception, e:
             error_code = KERNEL32.GetLastError()
             log.error("Failed monitoring, GLE: [%d]-[%s]", error_code, get_error_string(error_code))
             log.error(str(e))
-            return (False, hProcess, hThread, dwProcessId, dwThreadId)
+            return (False, h_process, h_thread, pid, tid)
 
-        log.warning("create_monitored_process")
+        log.info("Process successfully monitored, Now resuming PID[%d] TID[%d].", pid, tid)
 
-        win32process.ResumeThread(hThread)
-        log.info("malware run successfully, pid: [%d] tid: [%d]", dwProcessId, dwThreadId)
-        return (True, hProcess, hThread, dwProcessId, dwThreadId)
+        # Resume suspended thread
+        if -1 != KERNEL32.ResumeThread(h_thread):
+            log.info("Successfully resumed.")
+        else:
+            log.error("Resume failed.")
+
+        return (True, h_process, h_thread, pid, tid)
 
     def initialize(self):
         # Create driver device
