@@ -263,9 +263,10 @@ class Thunder(object):
 
     def parse_configuration(self, conf):
         number = ""
+        log.info("Configuration dict: [%s]", str(conf))
         for conf_title in self._configuration_order:
-            val = conf.get(conf_title, False)
-
+            val = conf.get(conf_title.lower(), False) or conf.get(conf_title.upper(), False)
+            log.info("Driver Configuration [%s] : [%s]", conf_title, str(val))
             if val:
                 number = "1" + number
             else:
