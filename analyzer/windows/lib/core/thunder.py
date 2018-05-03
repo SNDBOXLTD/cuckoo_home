@@ -166,8 +166,8 @@ class Thunder(object):
 
         creation_flags = CREATE_NEW_CONSOLE | CREATE_SUSPENDED
         # Create new process (UNICODE)
-        success = KERNEL32.CreateProcessW(process_path,
-                                          args,
+        success = KERNEL32.CreateProcessW(None,
+                                          "%s %s" % (process_path, args),
                                           None,
                                           None,
                                           None,
