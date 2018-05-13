@@ -446,6 +446,17 @@ class Analyzer(object):
             return "\\\\.\\PIPE\\%s" % name
         return "\\??\\PIPE\\%s" % name
 
+    def parse_driver_options(self):
+        driver_options = {}
+
+        options = self.config.options.get("options", "")
+        for k, v in self.config.options.items():
+            if "driver_" in k:
+                real_key = k.split("_", 1)[1]
+                driver_options[real_key] = True
+
+        return driver_options
+
     def prepare(self):
         """Prepare env for analysis."""
         # Get SeDebugPrivilege for the Python process. It will be needed in
@@ -505,7 +516,7 @@ class Analyzer(object):
         self.config.options["forwarderpipe"] = self.config.logpipe  # FORWARDER
         self.config.options["kernel_logpipe"] = "\\\\.\\%s" % (random_string(16, 32))
         self.config.options["destination"] = destination
-
+        self.config.options["driver_options"] = self.parse_driver_options()
 
         # We update the target according to its category. If it's a file, then
         # we store the target path.

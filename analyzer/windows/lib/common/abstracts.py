@@ -146,6 +146,7 @@ class Package(object):
         kernel_pipe = self.options.get("kernel_logpipe", "\\\\.\\ThunderDefPipe")
         log_pipe = self.options.get("forwarderpipe")
         dispatcher_pipe = self.options.get("dispatcherpipe")
+        driver_options = self.options.get("driver_options")
 
         # Kernel analysis overrides the free argument.
         if analysis == "kernel":
@@ -167,7 +168,7 @@ class Package(object):
                          forwarder_pipe=log_pipe, dispatcher_pipe=dispatcher_pipe,
                          destination=self.options.get("destination", ("localhost", 1)),
                          curdir=self.curdir, source=source, mode=mode,
-                         maximize=maximize, env=env, trigger=trigger):
+                         maximize=maximize, env=env, trigger=trigger, driver_options=driver_options):
             raise CuckooPackageError(
                 "Unable to execute the initial process, analysis aborted."
             )

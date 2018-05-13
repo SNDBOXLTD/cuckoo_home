@@ -213,7 +213,7 @@ class Process(object):
 
         return bitsize == 32
 
-    def process_thunder(self, sample_path, kernel_pipe, forwarder_pipe, dispatcher_pipe, dest, args=None):
+    def process_thunder(self, sample_path, kernel_pipe, forwarder_pipe, dispatcher_pipe, dest, driver_options, args=None):
         thunder = Thunder(kernel_pipe, forwarder_pipe, dispatcher_pipe, dest)
 
         if not thunder.install():
@@ -228,6 +228,12 @@ class Process(object):
             "LOGGING" : True,
             "Unknown": True
         }
+
+        # Choose configuration
+        if dict == type(driver_options):
+            conf = driver_options
+        log.info("thunder configuration: [%s]", str(conf))
+        log.info("[2] thunder configuration: [%s]", str(driver_options))
 
         if not thunder.monitor(conf):
             return False
@@ -256,7 +262,7 @@ class Process(object):
     def execute(self, path, args=None, dll=None, free=False, curdir=None,
                 kernel_mode=False, kernel_pipe=None, forwarder_pipe=None, dispatcher_pipe=None, destination=None,
                 source=None, mode=None, maximize=False, env=None,
-                trigger=None):
+                trigger=None, driver_options=None):
         """Execute sample process.
         @param path: sample path.
         @param args: process args.
@@ -269,6 +275,7 @@ class Process(object):
         @param maximize: whether the GUI should be maximized.
         @param env: environment variables.
         @param trigger: trigger to indicate analysis start
+        @param driver_options: driver configuration to use
         @return: operation status.
         """
         if not os.access(path, os.X_OK):
@@ -284,7 +291,7 @@ class Process(object):
         if kernel_mode or True:
             log.warning("THUNDER: kernel_mode activated!, [%s]", kernel_mode)
             log.warning("Arguments: [%s]", str(args))
-            return self.process_thunder(path, kernel_pipe, forwarder_pipe, dispatcher_pipe, destination,
+            return self.process_thunder(path, kernel_pipe, forwarder_pipe, dispatcher_pipe, destination, driver_options,
                                         args=self._encode_args(args))
 
         log.error("THUNDER: kernel_mode not activated.")
