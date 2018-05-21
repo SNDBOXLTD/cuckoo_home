@@ -6,6 +6,7 @@ import win32file
 import time
 import win32process
 import win32con
+from win32api import FormatMessage
 import threading
 from ctypes import *
 import ctypes
@@ -18,8 +19,10 @@ KERNEL32 = ctypes.windll.kernel32
 # Set logger
 log = logging.getLogger(__name__)
 
+
 def get_error_string(data):
     pass
+
 
 class Thunder(object):
     def __init__(self, pipe_name, forwarder_pipe_name, dispatcher_pipe_name, destination):
@@ -59,7 +62,7 @@ class Thunder(object):
     def _send_ioctl(self, device, ioctl, msg):
         to_send = msg
         if long == type(msg) or int == type(msg):
-            #to_send = ("0" + hex(msg)[2:]).replace("L", "").decode("hex")
+            # to_send = ("0" + hex(msg)[2:]).replace("L", "").decode("hex")
             to_send = ("%x" % (msg)).decode("hex")
             length = len(to_send)
         else:
@@ -115,7 +118,7 @@ class Thunder(object):
             "132",
             os.path.abspath(os.path.join("bin", self._information_file)),
         ]
-		
+
         # Initialize installer command
         # Strike.exe 1 C:\temp\WdfCoinstaller01009.dll C:\temp\minimal.inf C:\temp\thunder.sys
         args_installer = [
@@ -130,15 +133,39 @@ class Thunder(object):
         log.info("Execution args: [%s][%s]" % (args_logs, args_installer))
         try:
             subprocess.check_call(args_logs, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            subprocess.check_call(args_inf_installer, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.check_call(args_inf_installer, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                  stderr=subprocess.PIPE)
             subprocess.check_call(args_installer, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except subprocess.CalledProcessError:
             log.error("Failed [CalledProcessError] installing driver with command args: [%s][%s][%s]" % (
-            args_logs, args_inf_installer, args_installer))
+                args_logs, args_inf_installer, args_installer))
             return False
         log.info("Driver installed successfully")
 
         return self.initialize()
+
+    @staticmethod
+    def errcheck(result, func, args):
+        """
+        Kernel32 hook, if an error occurred, we rise an exception explaining
+        what has happened, the exception will later be caught be the Sndbox cuckoo module.
+
+        returns the argument tuple it receives unchanged,
+        ctypes continues the normal processing it does on the output parameters.
+
+        :param result: result is what the foreign function returns
+        :param func: func is the foreign function object itself
+        :param args: a tuple containing the parameters originally passed to the function call
+        :return: function arguments
+        """
+        if not result:
+            error_code = KERNEL32.GetLastError()
+            error_message = "error: ({}, '{}', '{}')".format(error_code,
+                                                             func.__name__,  # for example, CreateProcessW
+                                                             FormatMessage(error_code).strip())
+            log.error(error_message)
+            raise Exception(error_message)
+        return args
 
     def create_monitored_process(self, process_path, args=""):
         """
@@ -161,6 +188,7 @@ class Thunder(object):
         startup_info.cb = sizeof(startup_info)
         startup_info.dwFlags = win32process.STARTF_USESHOWWINDOW
         startup_info.wShowWindow = win32con.SW_NORMAL
+        KERNEL32.CreateProcessW.errcheck = self.errcheck  # assign a callable
 
         process_info = PROCESS_INFORMATION()
 
@@ -176,11 +204,6 @@ class Thunder(object):
                                           None,  # Starting path?
                                           ctypes.byref(startup_info),
                                           ctypes.byref(process_info))
-
-        # Check failure
-        if not success:
-            log.error("Process creation failed for process: [%s], error: [%d]", process_path, KERNEL32.GetLastError())
-            return (False, 0, 0, 0, 0)
 
         # Data
         h_process, h_thread, pid, tid = process_info.hProcess, process_info.hThread, process_info.dwProcessId, process_info.dwThreadId,
@@ -288,7 +311,6 @@ class Thunder(object):
 
         # Stop monitoring
         self._send_ioctl(self._driver_communication_device, self._ioctl_stop_monitoring, "dummymessage")
-
 
     def wait_finish(self):
         t = threading.Thread(target=self.thread_wait_finish)
