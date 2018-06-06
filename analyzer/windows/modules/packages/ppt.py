@@ -53,6 +53,14 @@ class PPT(Package):
                 "UFIControls": 1,
             },
         ],
+        [
+            HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Office\\15.0\\PowerPoint\\Options",
+            {
+                # Disable Hardware notification
+                "DisableHardwareNotification": 1,
+            },
+        ],
     ]
 
     def start(self, path):
