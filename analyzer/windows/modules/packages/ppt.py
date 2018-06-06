@@ -65,10 +65,10 @@ class PPT(Package):
             HKEY_CURRENT_USER,
             "Control Panel\\Desktop",
             {
-                # is value controls how many seconds Windows waits
+                # This value controls how many seconds Windows waits
                 # before considering applications unresponsive
                 #
-                # value in milliseconds milliseconds
+                # value in milliseconds
                 "HungAppTimeout": 30000,
             },
         ],
