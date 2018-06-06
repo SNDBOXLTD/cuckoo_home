@@ -61,6 +61,17 @@ class PPT(Package):
                 "DisableHardwareNotification": 1,
             },
         ],
+        [
+            HKEY_CURRENT_USER,
+            "Control Panel\\Desktop",
+            {
+                # is value controls how many seconds Windows waits
+                # before considering applications unresponsive
+                #
+                # value in milliseconds milliseconds
+                "HungAppTimeout": 30000,
+            },
+        ],
     ]
 
     def start(self, path):
