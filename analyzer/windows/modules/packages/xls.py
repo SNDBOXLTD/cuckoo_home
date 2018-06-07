@@ -24,17 +24,17 @@ class XLS(Package):
     REGKEYS = [
         [
             HKEY_CURRENT_USER,
-            "Software\\Microsoft\\Office\\12.0\\Common\\General",
+            "Software\\Microsoft\\Office\\15.0\\Common\\General",
             {
-                # "Welcome to the 2007 Microsoft Office system"
+                # "Welcome to the 2015 Microsoft Office system"
                 "ShownOptIn": 1,
             },
         ],
         [
             HKEY_CURRENT_USER,
-            "Software\\Microsoft\\Office\\12.0\\Excel\\Security",
+            "Software\\Microsoft\\Office\\15.0\\Excel\\Security",
             {
-                # Enable VBA macros in Office 2007.
+                # Enable VBA macros in Office 2015.
                 "VBAWarnings": 1,
                 "AccessVBOM": 1,
 
