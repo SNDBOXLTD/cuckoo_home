@@ -53,6 +53,25 @@ class PPT(Package):
                 "UFIControls": 1,
             },
         ],
+        [
+            HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Office\\15.0\\PowerPoint\\Options",
+            {
+                # Disable Hardware notification
+                "DisableHardwareNotification": 1,
+            },
+        ],
+        [
+            HKEY_CURRENT_USER,
+            "Control Panel\\Desktop",
+            {
+                # This value controls how many seconds Windows waits
+                # before considering applications unresponsive
+                #
+                # value in milliseconds
+                "HungAppTimeout": 30000,
+            },
+        ],
     ]
 
     def start(self, path):
