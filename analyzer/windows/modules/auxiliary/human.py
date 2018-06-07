@@ -58,7 +58,9 @@ def foreach_child(hwnd, lparam):
     # List of buttons labels to not click.
     dontclick = [
         "don't run",
-        "i do not accept"
+        "i do not accept",
+        "check for a solution and close the program",
+        "close the program"
     ]
 
     classname = create_unicode_buffer(50)
