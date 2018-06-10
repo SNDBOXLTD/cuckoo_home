@@ -69,7 +69,7 @@ class PPT(Package):
                 # before considering applications unresponsive
                 #
                 # value in milliseconds
-                "HungAppTimeout": 30000,
+                "HungAppTimeout": "30000",
             },
         ],
     ]
