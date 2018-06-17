@@ -37,7 +37,7 @@ class Thunder(object):
         self._ioctl_stop_monitoring = 0x22241C
 
         # Order is crucial, same in the driver it self
-        self._configuration_order = ["SSDT", "TIME", "REGISTRY", "FILES", "EXTRA", "LOGGING"]
+        self._configuration_order = ["SSDT", "TIME", "REGISTRY", "FILES", "EXTRA", "LOGGING", "AGGRESSIVE"]
 
         # General configurations
         self._driver_pipe_name = "\\\\.\\Thunder"

@@ -23,17 +23,17 @@ class PPT(Package):
     REGKEYS = [
         [
             HKEY_CURRENT_USER,
-            "Software\\Microsoft\\Office\\12.0\\Common\\General",
+            "Software\\Microsoft\\Office\\15.0\\Common\\General",
             {
-                # "Welcome to the 2007 Microsoft Office system"
+                # "Welcome to the 2015 Microsoft Office system"
                 "ShownOptIn": 1,
             },
         ],
         [
             HKEY_CURRENT_USER,
-            "Software\\Microsoft\\Office\\12.0\\Powerpoint\\Security",
+            "Software\\Microsoft\\Office\\15.0\\Powerpoint\\Security",
             {
-                # Enable VBA macros in Office 2007.
+                # Enable VBA macros in Office 2015.
                 "VBAWarnings": 1,
                 "AccessVBOM": 1,
 
@@ -51,6 +51,25 @@ class PPT(Package):
                 # Enable all ActiveX controls without restrictions & prompting.
                 "DisableAllActiveX": 0,
                 "UFIControls": 1,
+            },
+        ],
+        [
+            HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Office\\15.0\\PowerPoint\\Options",
+            {
+                # Disable Hardware notification
+                "DisableHardwareNotification": 1,
+            },
+        ],
+        [
+            HKEY_CURRENT_USER,
+            "Control Panel\\Desktop",
+            {
+                # This value controls how many seconds Windows waits
+                # before considering applications unresponsive
+                #
+                # value in milliseconds
+                "HungAppTimeout": "30000",
             },
         ],
     ]
