@@ -80,7 +80,10 @@ class PPT(Package):
     ]
 
     def start(self, path):
-        # Transform to pps/ppsx extention
+        # We observed multiple files that Powerpoint failed to open
+        # directly into slideshow mode (where the exploit occur).
+        # Renaming to .pps extention force this situation
+        # regarding of prior extention
         if path.endswith(".ppt") or path.endswith(".pptx"):
             os.rename(path, path + ".pps")
             path += ".pps"
