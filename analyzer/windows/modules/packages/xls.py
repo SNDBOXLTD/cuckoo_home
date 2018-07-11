@@ -43,6 +43,10 @@ class XLS(Package):
                 # is not corrupted and is from trusted source before opening
                 # the file. Do you want to open the file now?"
                 "ExtensionHardening": 0,
+
+                # "Data connection has been blocked"
+                "DataConnectionWarnings": 0,
+                "WorkbookLinkWarnings": 0,
             },
         ],
         [

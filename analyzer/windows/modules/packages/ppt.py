@@ -2,9 +2,14 @@
 # This file is part of Cuckoo Sandbox - http://www.cuckoosandbox.org
 # See the file 'docs/LICENSE' for copying permission.
 
+import os
+import logging
+
 from _winreg import HKEY_CURRENT_USER
 
 from lib.common.abstracts import Package
+
+log = logging.getLogger(__name__)
 
 class PPT(Package):
     """PowerPoint analysis package."""
@@ -75,6 +80,15 @@ class PPT(Package):
     ]
 
     def start(self, path):
+        # We observed multiple files that Powerpoint failed to open
+        # directly into slideshow mode (where the exploit occur).
+        # Renaming to .pps extention force this situation
+        # regarding of prior extention
+        if path.endswith(".ppt") or path.endswith(".pptx"):
+            os.rename(path, path + ".pps")
+            path += ".pps"
+            log.info("Submitted file is using ppt/x extension, added .pps")
+
         powerpoint = self.get_path("Microsoft Office PowerPoint")
         return self.execute(
             powerpoint, args=["/S", path], mode="office",

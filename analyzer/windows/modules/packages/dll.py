@@ -12,14 +12,11 @@ from lib.common.abstracts import Package
 class Dll(Package):
     """DLL analysis package."""
     PATHS = [
-        ("System32", "rundll32.exe"),
+        ("bin", "sndll32.exe"),
     ]
 
     def start(self, path):
-        rundll32 = self.get_path("rundll32.exe")
-        function = self.options.get("function", "DllMain")
-        arguments = self.options.get("arguments", "")
-        loader_name = self.options.get("loader")
+        sndll = self.get_path("sndll32.exe")
 
         # Check file extension.
         ext = os.path.splitext(path)[-1].lower()
@@ -32,13 +29,6 @@ class Dll(Package):
             os.rename(path, new_path)
             path = new_path
 
-        args = ["%s,%s" % (path, function)]
-        if arguments:
-            args += shlex.split(arguments)
+        args = ["%s" % (path)]
 
-        if loader_name:
-            loader = os.path.join(os.path.dirname(rundll32), loader_name)
-            shutil.copy(rundll32, loader)
-            rundll32 = loader
-
-        return self.execute(rundll32, args=args)
+        return self.execute(sndll, args=args)
