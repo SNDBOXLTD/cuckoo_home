@@ -52,7 +52,8 @@ def foreach_child(hwnd, lparam):
         "end",
         "allow access",
         "remind me later",
-        "save", "sauvegarder"
+        "save", "sauvegarder",
+        "update"
     ]
 
     # List of buttons labels to not click.
