@@ -48,11 +48,10 @@ class DOC(Package):
         ],
         [
             HKEY_CURRENT_USER,
-            "Software\\Microsoft\\Office\\16.0\\Word\\Security",
+            "Software\\Microsoft\\Office\\15.0\\Word\\Security\\FileValidation",
             {
-                # Enable VBA macros in Office 2016.
-                "VBAWarnings": 1,
-                "AccessVBOM": 1,
+                # Disable file validation check onload
+                "EnableOnLoad": 0
             },
         ],
         [
