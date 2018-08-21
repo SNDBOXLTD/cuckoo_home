@@ -44,15 +44,9 @@ class DOC(Package):
                 # is not corrupted and is from trusted source before opening
                 # the file. Do you want to open the file now?"
                 "ExtensionHardening": 0,
-            },
-        ],
-        [
-            HKEY_CURRENT_USER,
-            "Software\\Microsoft\\Office\\16.0\\Word\\Security",
-            {
-                # Enable VBA macros in Office 2016.
-                "VBAWarnings": 1,
-                "AccessVBOM": 1,
+
+                # Disable security file check onload
+                "EnableOnLoad": 0
             },
         ],
         [
