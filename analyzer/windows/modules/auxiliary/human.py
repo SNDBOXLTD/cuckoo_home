@@ -61,7 +61,9 @@ def foreach_child(hwnd, lparam):
         "don't run",
         "i do not accept",
         "check for a solution and close the program",
-        "close the program"
+        "close the program",
+        "never allow opening files of this type",
+        "always allow opening files of this type"
     ]
 
     classname = create_unicode_buffer(50)
