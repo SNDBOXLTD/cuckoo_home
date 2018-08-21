@@ -44,8 +44,13 @@ class DOC(Package):
                 # is not corrupted and is from trusted source before opening
                 # the file. Do you want to open the file now?"
                 "ExtensionHardening": 0,
-
-                # Disable security file check onload
+            },
+        ],
+        [
+            HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Office\\15.0\\Word\\Security\\FileValidation",
+            {
+                # Disable file validation check onload
                 "EnableOnLoad": 0
             },
         ],
