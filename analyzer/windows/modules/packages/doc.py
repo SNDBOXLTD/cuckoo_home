@@ -25,17 +25,17 @@ class DOC(Package):
     REGKEYS = [
         [
             HKEY_CURRENT_USER,
-            "Software\\Microsoft\\Office\\15.0\\Common\\General",
+            "Software\\Microsoft\\Office\\14.0\\Common\\General",
             {
-                # "Welcome to the 2015 Microsoft Office system"
+                # "Welcome to the 2010 Microsoft Office system"
                 "ShownOptIn": 1,
             },
         ],
         [
             HKEY_CURRENT_USER,
-            "Software\\Microsoft\\Office\\15.0\\Word\\Security",
+            "Software\\Microsoft\\Office\\14.0\\Word\\Security",
             {
-                # Enable VBA macros in Office 2015.
+                # Enable VBA macros in Office 2010.
                 "VBAWarnings": 1,
                 "AccessVBOM": 1,
 
@@ -48,7 +48,7 @@ class DOC(Package):
         ],
         [
             HKEY_CURRENT_USER,
-            "Software\\Microsoft\\Office\\15.0\\Word\\Security\\FileValidation",
+            "Software\\Microsoft\\Office\\14.0\\Word\\Security\\FileValidation",
             {
                 # Disable file validation check onload
                 "EnableOnLoad": 0
