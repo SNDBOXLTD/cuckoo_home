@@ -24,9 +24,17 @@ class PUB(Package):
     REGKEYS = [
         [
             HKEY_CURRENT_USER,
-            "Software\\Microsoft\\Office\\12.0\\Publisher\\Security",
+            "Software\\Microsoft\\Office\\14.0\\Common\\General",
             {
-                # Enable VBA macros in Office 2007.
+                # "Welcome to the 2010 Microsoft Office system"
+                "ShownOptIn": 1,
+            },
+        ],
+        [
+            HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Office\\14.0\\Publisher\\Security",
+            {
+                # Enable VBA macros in Office 2010.
                 "VBAWarnings": 1,
                 "AccessVBOM": 1,
 
@@ -39,28 +47,13 @@ class PUB(Package):
         ],
         [
             HKEY_CURRENT_USER,
-            "Software\\Microsoft\\Office\\15.0\\Publisher\\Security",
+            "Software\\Microsoft\\Office\\Common\\Security",
             {
-                # Enable VBA macros in Office 2013.
-                "VBAWarnings": 1,
-                "AccessVBOM": 1,
-
-                # "The file you are trying to open .xyz is in a different
-                # format than specified by the file extension. Verify the file
-                # is not corrupted and is from trusted source before opening
-                # the file. Do you want to open the file now?"
-                "ExtensionHardening": 0,
+                # Enable all ActiveX controls without restrictions & prompting.
+                "DisableAllActiveX": 0,
+                "UFIControls": 1,
             },
-        ],
-        [
-            HKEY_CURRENT_USER,
-            "Software\\Microsoft\\Office\\16.0\\Publisher\\Security",
-            {
-                # Enable VBA macros in Office 2016.
-                "VBAWarnings": 1,
-                "AccessVBOM": 1,
-            },
-        ],
+        ]
     ]
 
     def start(self, path):

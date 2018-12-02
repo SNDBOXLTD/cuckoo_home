@@ -52,7 +52,7 @@ class Thunder(object):
         self._installer_exe_name = "Strike.exe"
         self._driver_name = "Thunder.sys"
         self._information_file = "minimal.inf"
-        self._log_dispatcher_name = "log_dispatcher.py"
+        self._log_dispatcher_name = "log_dispatcher.pyw"
 
     def _create_device(self):
         # return KERNEL32.CreateFileA(self._driver_pipe, GENERIC_READ | GENERIC_WRITE, 0, None, OPEN_EXISTING, 0, None)
