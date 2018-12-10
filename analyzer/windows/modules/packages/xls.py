@@ -61,6 +61,8 @@ class XLS(Package):
     ]
 
     def start(self, path):
+        self._allow_embedded_flash()
+
         excel = self.get_path("Microsoft Office Excel")
         return self.execute(
             excel, args=[path], mode="office", trigger="file:%s" % path
