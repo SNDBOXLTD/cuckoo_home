@@ -128,7 +128,7 @@ class Package(object):
             CloseKey(key_handle)
 
     @staticmethod
-    def __allow_embedded_flash():
+    def _allow_embedded_flash():
         """
         Allows embedded flash objects in OLE docs
         to be executed automatically by disabling the adobe check dialog.
@@ -168,9 +168,6 @@ class Package(object):
 
         source = source or self.options.get("from")
         mode = mode or self.options.get("mode")
-
-        if mode == 'office':
-            self.__allow_embedded_flash()
 
         if not trigger and self.options.get("trigger"):
             if self.options["trigger"] == "exefile":

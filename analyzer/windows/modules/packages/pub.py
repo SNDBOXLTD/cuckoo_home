@@ -57,6 +57,8 @@ class PUB(Package):
     ]
 
     def start(self, path):
+        self._allow_embedded_flash()
+
         publisher = self.get_path("Microsoft Office Publisher")
         return self.execute(
             publisher, args=["/o", path], mode="office", trigger="file:%s" % path

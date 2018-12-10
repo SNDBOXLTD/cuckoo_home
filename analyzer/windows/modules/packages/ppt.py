@@ -89,6 +89,8 @@ class PPT(Package):
             path += ".pps"
             log.info("Submitted file is using ppt/x extension, added .pps")
 
+        self._allow_embedded_flash()
+
         powerpoint = self.get_path("Microsoft Office PowerPoint")
         return self.execute(
             powerpoint, args=["/S", path], mode="office",
