@@ -66,6 +66,8 @@ class DOC(Package):
     ]
 
     def start(self, path):
+        self._allow_embedded_flash()
+
         word = self.get_path("Microsoft Office Word")
         return self.execute(
             word, args=[path], mode="office", trigger="file:%s" % path

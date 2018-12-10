@@ -127,6 +127,20 @@ class Package(object):
 
             CloseKey(key_handle)
 
+    @staticmethod
+    def _allow_embedded_flash():
+        """
+        Allows embedded flash objects in OLE docs
+        to be executed automatically by disabling the adobe check dialog.
+        seen in CVE-2018-15982 PoC
+        "this document contains embedded content"
+        :return: None
+        """
+        conf_flag = "MSOfficeEmbedCheckDisable = 1"
+        adobe_config_path = os.path.join("/Windows/System32/Macromed/Flash", "mms.cfg")
+        with open(adobe_config_path, "a") as file_to_append:
+            file_to_append.write(conf_flag)
+
     def execute(self, path, args, mode=None, maximize=False, env=None,
                 source=None, trigger=None):
         """Starts an executable for analysis.
