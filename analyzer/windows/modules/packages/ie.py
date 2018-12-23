@@ -123,9 +123,9 @@ class IE(Package):
             target += ".html"
             log.info("Submitted file is missing extension, adding .html")
 
-        bin_path = os.path.join(self.analyzer.path, "bin\sndBot")
+        bin_path = os.path.join(self.analyzer.path, "bin\\sndBot")
 
-        ie_bot_bin = os.path.join(bin_path, "iexplore.exe")
+        ie_bot_bin = os.path.join(bin_path, "sndbot.exe")
         ie_driver = os.path.join(bin_path, "IEDriverServer_32bit.exe")
 
         arguments = ["--b", "explorer", "--t", "1", "--i", target, "--d", ie_driver]
