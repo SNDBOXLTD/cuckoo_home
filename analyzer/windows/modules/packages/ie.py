@@ -5,6 +5,7 @@
 
 import logging
 import os
+import subprocess
 
 from _winreg import HKEY_LOCAL_MACHINE, HKEY_CURRENT_USER
 
@@ -122,7 +123,12 @@ class IE(Package):
             target += ".html"
             log.info("Submitted file is missing extension, adding .html")
 
-        iexplore = self.get_path("Internet Explorer")
+        bin_path = os.path.join(self.analyzer.path, "bin\\sndBot")
+
+        ie_bot_bin = os.path.join(bin_path, "sndbot.exe")
+        ie_driver = os.path.join(bin_path, "IEDriverServer_32bit.exe")
+
+        arguments = ["--b", "explorer", "--t", "1", "--i", target, "--d", ie_driver]
         return self.execute(
-            iexplore, args=[target], maximize=True, mode="iexplore"
+            ie_bot_bin, args=arguments, maximize=True, mode="iexplore"
         )
