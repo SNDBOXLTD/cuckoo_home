@@ -12,7 +12,7 @@ class Exe(Package):
     """EXE analysis package."""
 
     def start(self, path):
-        args = self.options.get("arguments", "")
+        args = self._get_commandline()
 
         name, ext = os.path.splitext(path)
         if not ext:
