@@ -5,6 +5,7 @@
 
 import glob
 import os
+import base64
 
 from _winreg import CreateKey, SetValueEx, CloseKey, REG_DWORD, REG_SZ
 
@@ -126,6 +127,18 @@ class Package(object):
                     raise CuckooPackageError("Invalid value type: %r" % value)
 
             CloseKey(key_handle)
+
+    def _get_commandline(self):
+        """
+        Decodes the "arguments" cuckoo option, which typically include
+        a commandline however we encode it to avoid injection.
+        For example this commandline: "-n 100 1.1.1.1,haha=true"
+        would actually produce this options object: {"arguments": "-n 100 1.1.1.1", "haha": "true"}
+        because of the way cuckoo parses it
+        :return: String, base64 decoded commandline
+        """
+        arguments = self.options.get("arguments")
+        return base64.b64decode(arguments) if arguments else ""
 
     @staticmethod
     def _allow_embedded_flash():
