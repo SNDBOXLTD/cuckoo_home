@@ -112,7 +112,7 @@ class Thunder(object):
 
         # RUNDLL32.EXE SETUPAPI.DLL,InstallHinfSection DefaultInstall 132 C:\temp\minimal.inf
         args_inf_installer = [
-            "RUNDLL32.EXE",
+            "C:\windows\system32\RUNDLL32.EXE",
             "SETUPAPI.DLL,InstallHinfSection",
             "DefaultInstall",
             "132",
@@ -133,8 +133,14 @@ class Thunder(object):
         log.info("Execution args: [%s][%s]" % (args_logs, args_installer))
         try:
             subprocess.check_call(args_logs, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            
+            if self.is_x64:
+                KERNEL32.Wow64DisableWow64FsRedirection(0)
             subprocess.check_call(args_inf_installer, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE)
+            #if self.is_x64:
+            #    KERNEL32.Wow64EnableWow64FsRedirection(0)
+                
             subprocess.check_call(args_installer, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except subprocess.CalledProcessError:
             log.error("Failed [CalledProcessError] installing driver with command args: [%s][%s][%s]" % (
