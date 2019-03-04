@@ -37,7 +37,7 @@ class Thunder(object):
         self._ioctl_stop_monitoring = 0x22241C
 
         # Order is crucial, same in the driver it self
-        self._configuration_order = ["SSDT", "TIME", "REGISTRY", "FILES", "EXTRA", "LOGGING", "AGGRESSIVE"]
+        self._configuration_order = ["SSDT", "TIME", "REGISTRY", "FILES", "EXTRA", "LOGGING", "AGGRESSIVE", "RPC"]
 
         # General configurations
         self._driver_pipe_name = "\\\\.\\Thunder"
@@ -56,7 +56,7 @@ class Thunder(object):
 
     def _create_device(self):
         # return KERNEL32.CreateFileA(self._driver_pipe, GENERIC_READ | GENERIC_WRITE, 0, None, OPEN_EXISTING, 0, None)
-        return win32file.CreateFile(self._driver_pipe, win32file.GENERIC_READ | win32file.GENERIC_WRITE, 0, None,
+        return win32file.CreateFile(self._driver_pipe_name, win32file.GENERIC_READ | win32file.GENERIC_WRITE, 0, None,
                                     win32file.OPEN_EXISTING, 0, None)
 
     def _send_ioctl(self, device, ioctl, msg):
