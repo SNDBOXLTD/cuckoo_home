@@ -138,8 +138,6 @@ class Thunder(object):
                 KERNEL32.Wow64DisableWow64FsRedirection(0)
             subprocess.check_call(args_inf_installer, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE)
-            #if self.is_x64:
-            #    KERNEL32.Wow64EnableWow64FsRedirection(0)
                 
             subprocess.check_call(args_installer, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except subprocess.CalledProcessError:
