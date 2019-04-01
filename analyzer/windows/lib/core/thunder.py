@@ -37,7 +37,7 @@ class Thunder(object):
         self._ioctl_stop_monitoring = 0x22241C
 
         # Order is crucial, same in the driver it self
-        self._configuration_order = ["SSDT", "TIME", "REGISTRY", "FILES", "EXTRA", "LOGGING", "AGGRESSIVE"]
+        self._configuration_order = ["SSDT", "TIME", "REGISTRY", "FILES", "EXTRA", "LOGGING", "AGGRESSIVE", "RPC"]
 
         # General configurations
         self._driver_pipe_name = "\\\\.\\Thunder"
@@ -56,7 +56,7 @@ class Thunder(object):
 
     def _create_device(self):
         # return KERNEL32.CreateFileA(self._driver_pipe, GENERIC_READ | GENERIC_WRITE, 0, None, OPEN_EXISTING, 0, None)
-        return win32file.CreateFile(self._driver_pipe, win32file.GENERIC_READ | win32file.GENERIC_WRITE, 0, None,
+        return win32file.CreateFile(self._driver_pipe_name, win32file.GENERIC_READ | win32file.GENERIC_WRITE, 0, None,
                                     win32file.OPEN_EXISTING, 0, None)
 
     def _send_ioctl(self, device, ioctl, msg):
@@ -112,7 +112,7 @@ class Thunder(object):
 
         # RUNDLL32.EXE SETUPAPI.DLL,InstallHinfSection DefaultInstall 132 C:\temp\minimal.inf
         args_inf_installer = [
-            "RUNDLL32.EXE",
+            "C:\windows\system32\RUNDLL32.EXE",
             "SETUPAPI.DLL,InstallHinfSection",
             "DefaultInstall",
             "132",
@@ -133,8 +133,12 @@ class Thunder(object):
         log.info("Execution args: [%s][%s]" % (args_logs, args_installer))
         try:
             subprocess.check_call(args_logs, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            
+            if self.is_x64:
+                KERNEL32.Wow64DisableWow64FsRedirection(0)
             subprocess.check_call(args_inf_installer, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE)
+                
             subprocess.check_call(args_installer, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except subprocess.CalledProcessError:
             log.error("Failed [CalledProcessError] installing driver with command args: [%s][%s][%s]" % (
