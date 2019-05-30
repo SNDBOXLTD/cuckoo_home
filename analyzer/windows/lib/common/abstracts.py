@@ -161,11 +161,9 @@ class Package(object):
 
     @staticmethod
     def _verify_network():
-        sndbox_api_ep = "https://api.sndbox.com"
+        test_uri = "https://google.com"
         try:
-            response = urllib2.urlopen(sndbox_api_ep, timeout=5)
-            data = json.load(response)
-            assert(data.get('status') == 'online')
+            urllib2.urlopen(test_uri, timeout=5)
             return True
         except:
             log.exception("Failed to verify network connection.")
