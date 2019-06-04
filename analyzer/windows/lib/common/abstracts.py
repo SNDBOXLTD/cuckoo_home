@@ -159,17 +159,6 @@ class Package(object):
         with open(adobe_config_path, "a") as file_to_append:
             file_to_append.write(conf_flag)
 
-    @staticmethod
-    def _verify_network():
-        test_uri = "https://google.com"
-        try:
-            urllib2.urlopen(test_uri, timeout=5)
-            return True
-        except:
-            log.exception("Failed to verify network connection.")
-        return False
-
-
     def execute(self, path, args, mode=None, maximize=False, env=None,
                 source=None, trigger=None):
         """Starts an executable for analysis.
@@ -190,10 +179,6 @@ class Package(object):
         log_pipe = self.options.get("forwarderpipe")
         dispatcher_pipe = self.options.get("dispatcherpipe")
         driver_options = self.options.get("driver_options")
-
-        # Check network
-        if not self._verify_network():
-            raise CuckooPackageError("Unable to verify network, analysis aborted.")
 
         # Kernel analysis overrides the free argument.
         if analysis == "kernel":

@@ -3,9 +3,11 @@
 # See the file 'docs/LICENSE' for copying permission.
 
 import logging
+import socket
 
 from lib.api.process import subprocess_checkcall
 from lib.common.abstracts import Auxiliary
+from lib.common.exceptions import CuckooPackageError
 
 log = logging.getLogger(__name__)
 
@@ -18,6 +20,14 @@ class DnsFlush(Auxiliary):
     """
 
     def start(self):
+        # verify network
+        hostname = "sndbox.com"
+        try:
+            socket.gethostbyname(hostname)
+        except:
+            log.exception("Failed to verify network connection.")
+            raise CuckooPackageError("Unable to verify network, analysis aborted.")
+        # dns flush
         try:
             subprocess_checkcall(["ipconfig.exe", "/flushdns"])
             log.info("Successfully flushed dns.")
