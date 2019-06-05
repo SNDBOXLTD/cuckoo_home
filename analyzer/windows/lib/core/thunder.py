@@ -10,11 +10,13 @@ from win32api import FormatMessage
 import threading
 from ctypes import *
 import ctypes
-from lib.common.defines import STARTUPINFO, PROCESS_INFORMATION
+from lib.common.defines import STARTUPINFO, PROCESS_INFORMATION, PSAPI
 from lib.common.defines import CREATE_NEW_CONSOLE, CREATE_SUSPENDED
 from lib.common.constants import SHUTDOWN_MUTEX
 
 KERNEL32 = ctypes.windll.kernel32
+
+PRELOADED_APPS = ['winword.exe', 'excel.exe', 'powerpnt.exe']
 
 # Set logger
 log = logging.getLogger(__name__)
@@ -22,6 +24,47 @@ log = logging.getLogger(__name__)
 
 def get_error_string(data):
     pass
+
+def get_preloaded_pids():
+    """ Fetch list of preloaded pids
+    reference: https://code.activestate.com/recipes/305279-getting-process-information-on-windows.
+    """
+    arr = c_ulong * 256
+    lpidProcess = arr()
+    cb = sizeof(lpidProcess)
+    cbNeeded = c_ulong()
+    hModule = c_ulong()
+    count = c_ulong()
+    modname = c_buffer(30)
+    PROCESS_QUERY_INFORMATION = 0x0400
+    PROCESS_VM_READ = 0x0010
+
+    #Call Enumprocesses to get hold of process id's
+    PSAPI.EnumProcesses(byref(lpidProcess), cb, byref(cbNeeded))
+
+    #Number of processes returned
+    nReturned = cbNeeded.value/sizeof(c_ulong())
+    pidProcess = [i for i in lpidProcess][:nReturned]
+
+    found = dict()
+
+    for pid in pidProcess:
+        #Get handle to the process based on PID
+        hProcess = KERNEL32.OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, pid)
+        if hProcess:
+            PSAPI.EnumProcessModules(hProcess, byref(hModule), sizeof(hModule), byref(count))
+            PSAPI.GetModuleBaseNameA(hProcess, hModule.value, modname, sizeof(modname))
+            process_name = "".join([i for i in modname if i != '\x00'])
+            # save process
+            if process_name.lower() in PRELOADED_APPS:
+                found[process_name.lower()] = pid
+
+            #-- Clean up
+            for i in range(modname._length_):
+                modname[i] = '\x00'
+
+            KERNEL32.CloseHandle(hProcess)
+    return found
 
 
 class Thunder(object):
@@ -53,7 +96,26 @@ class Thunder(object):
         self._driver_name = "Thunder.sys"
         self._information_file = "minimal.inf"
         self._log_dispatcher_name = "log_dispatcher.pyw"
+        
+        # holds pid of preloaded office apps
+        self.preloaded_pids = get_preloaded_pids()
 
+    def _check_pid(self, process_path, pid):
+        """Check pid. 
+        Return preloaded pid If process is offce, else return original pid.
+        """
+        if not process_path:
+            return pid
+        process_name = process_path.split('\\')[-1].lower()
+        log.info("checking pid for process %s, pid %d", process_name, pid)
+        
+        if process_name in PRELOADED_APPS:
+            preloaded_pid = self.preloaded_pids.get(process_name, pid)
+            log.info("returning fixed pid %d", preloaded_pid)
+            return preloaded_pid
+
+        return pid
+    
     def _create_device(self):
         # return KERNEL32.CreateFileA(self._driver_pipe, GENERIC_READ | GENERIC_WRITE, 0, None, OPEN_EXISTING, 0, None)
         return win32file.CreateFile(self._driver_pipe_name, win32file.GENERIC_READ | win32file.GENERIC_WRITE, 0, None,
@@ -211,6 +273,7 @@ class Thunder(object):
 
         # Data
         h_process, h_thread, pid, tid = process_info.hProcess, process_info.hThread, process_info.dwProcessId, process_info.dwThreadId,
+        pid = self._check_pid(process_path, pid)
 
         # Hack to monitor first pid - this process
         try:
