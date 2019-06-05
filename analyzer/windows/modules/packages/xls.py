@@ -6,19 +6,15 @@
 from _winreg import HKEY_CURRENT_USER
 
 from lib.common.abstracts import Package
+from lib.common.rand import random_string
 
 class XLS(Package):
-    """Excel analysis package."""
+    """Excel analysis package.
+    We hack excel single instance by loading sample from commandline
+    """
+
     PATHS = [
-        ("ProgramFiles", "Microsoft Office", "EXCEL.EXE"),
-        ("ProgramFiles", "Microsoft Office", "Office10", "EXCEL.EXE"),
-        ("ProgramFiles", "Microsoft Office", "Office11", "EXCEL.EXE"),
-        ("ProgramFiles", "Microsoft Office", "Office12", "EXCEL.EXE"),
-        ("ProgramFiles", "Microsoft Office", "Office14", "EXCEL.EXE"),
-        ("ProgramFiles", "Microsoft Office", "Office15", "EXCEL.EXE"),
-        ("ProgramFiles", "Microsoft Office", "Office16", "EXCEL.EXE"),
-        ("ProgramFiles", "Microsoft Office 15", "root", "office15", "EXCEL.EXE"),
-        ("ProgramFiles", "Microsoft Office", "root", "Office16", "EXCEL.EXE"),
+        ("System32", "cmd.exe"),
     ]
 
     REGKEYS = [
@@ -62,8 +58,9 @@ class XLS(Package):
 
     def start(self, path):
         self._allow_embedded_flash()
-
-        excel = self.get_path("Microsoft Office Excel")
-        return self.execute(
-            excel, args=[path], mode="office", trigger="file:%s" % path
-        )
+        # start sample similar to generic package
+        cmd_path = self.get_path("cmd.exe")
+         # Create random cmd.exe window title.
+        rand_title = random_string(4, 16)
+        args = ["/c", "start", "/wait", '"%s"' % rand_title, path]
+        return self.execute(cmd_path, args=args, trigger="file:%s" % path)
