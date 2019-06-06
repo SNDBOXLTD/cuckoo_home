@@ -6,20 +6,13 @@
 from _winreg import HKEY_CURRENT_USER
 
 from lib.common.abstracts import Package
+from lib.common.rand import random_string
 
 class DOC(Package):
-    """Word analysis package."""
+    """Word analysis package.
+    We hack excel single instance by loading sample from commandline"""
     PATHS = [
-        ("ProgramFiles", "Microsoft Office", "WINWORD.EXE"),
-        ("ProgramFiles", "Microsoft Office", "Office10", "WINWORD.EXE"),
-        ("ProgramFiles", "Microsoft Office", "Office11", "WINWORD.EXE"),
-        ("ProgramFiles", "Microsoft Office", "Office12", "WINWORD.EXE"),
-        ("ProgramFiles", "Microsoft Office", "Office14", "WINWORD.EXE"),
-        ("ProgramFiles", "Microsoft Office", "Office15", "WINWORD.EXE"),
-        ("ProgramFiles", "Microsoft Office", "Office16", "WINWORD.EXE"),
-        ("ProgramFiles", "Microsoft Office 15", "root", "office15", "WINWORD.EXE"),
-        ("ProgramFiles", "Microsoft Office", "root", "Office16", "WINWORD.EXE"),
-        ("ProgramFiles", "Microsoft Office", "WORDVIEW.EXE"),
+        ("System32", "cmd.exe"),
     ]
 
     REGKEYS = [
@@ -67,8 +60,9 @@ class DOC(Package):
 
     def start(self, path):
         self._allow_embedded_flash()
-
-        word = self.get_path("Microsoft Office Word")
-        return self.execute(
-            word, args=[path], mode="office", trigger="file:%s" % path
-        )
+        # start sample similar to generic package
+        cmd_path = self.get_path("cmd.exe")
+         # Create random cmd.exe window title.
+        rand_title = random_string(4, 16)
+        args = ["/c", "start", "/wait", '"%s"' % rand_title, path]
+        return self.execute(cmd_path, args=args, trigger="file:%s" % path)

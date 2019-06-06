@@ -17,6 +17,10 @@ from lib.common.constants import SHUTDOWN_MUTEX
 KERNEL32 = ctypes.windll.kernel32
 
 PRELOADED_APPS = ['winword.exe', 'excel.exe', 'powerpnt.exe']
+PACKAGE_TO_APP = {
+    'XLS': 'excel.exe',
+    'DOC': 'winword.exe'
+}
 
 # Set logger
 log = logging.getLogger(__name__)
@@ -107,9 +111,9 @@ class Thunder(object):
         """Check pid. 
         Return preloaded pid If process is offce, else return original pid.
         """
-        if self.package == 'XLS':
-            return self.preloaded_pids.get('excel.exe')
-
+        if self.package in PACKAGE_TO_APP.keys():
+            return self.preloaded_pids[PACKAGE_TO_APP[self.package]]
+        
         if not process_path:
             return pid
 
