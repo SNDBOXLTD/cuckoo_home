@@ -70,5 +70,5 @@ class DOC(Package):
 
         word = self.get_path("Microsoft Office Word")
         return self.execute(
-            word, args=[path], mode="office", trigger="file:%s" % path
+            word, args=["/q", path], mode="office", trigger="file:%s" % path
         )
