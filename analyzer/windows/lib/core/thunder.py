@@ -68,7 +68,7 @@ def get_preloaded_pids():
 
 
 class Thunder(object):
-    def __init__(self, pipe_name, forwarder_pipe_name, dispatcher_pipe_name, destination):
+    def __init__(self, pipe_name, forwarder_pipe_name, dispatcher_pipe_name, destination, package):
         self.is_x64 = platform.machine().endswith("64")
         self._driver_communication_device = 0
         self.ip, self.port = destination
@@ -98,6 +98,8 @@ class Thunder(object):
         self._log_dispatcher_name = "log_dispatcher.pyw"
         
         # holds pid of preloaded office apps
+        self.package = package
+        log.info("using package: %s", self.package)
         self.preloaded_pids = get_preloaded_pids()
 
     def _check_pid(self, process_path, pid):
