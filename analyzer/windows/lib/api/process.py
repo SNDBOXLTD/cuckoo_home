@@ -293,7 +293,7 @@ class Process(object):
             log.warning("THUNDER: kernel_mode activated!, [%s]", kernel_mode)
             log.warning("Arguments: [%s]", str(args))
             return self.process_thunder(path, kernel_pipe, forwarder_pipe, dispatcher_pipe, destination, driver_options,
-                                        args=self._encode_args(args), package)
+                                        args=self._encode_args(args), package=package)
 
         log.error("THUNDER: kernel_mode not activated.")
 

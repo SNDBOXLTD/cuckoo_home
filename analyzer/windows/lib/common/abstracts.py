@@ -201,8 +201,7 @@ class Package(object):
                          forwarder_pipe=log_pipe, dispatcher_pipe=dispatcher_pipe,
                          destination=self.options.get("destination", ("localhost", 1)),
                          curdir=self.curdir, source=source, mode=mode,
-                         maximize=maximize, env=env, trigger=trigger, driver_options=driver_options,
-                         package=package):
+                         maximize=maximize, env=env, trigger=trigger, driver_options=driver_options, package=package):
             raise CuckooPackageError(
                 "Unable to execute the initial process, analysis aborted."
             )

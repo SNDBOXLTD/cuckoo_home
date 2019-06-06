@@ -25,6 +25,7 @@ log = logging.getLogger(__name__)
 def get_error_string(data):
     pass
 
+
 def get_preloaded_pids():
     """ Fetch list of preloaded pids
     reference: https://code.activestate.com/recipes/305279-getting-process-information-on-windows.
@@ -39,17 +40,17 @@ def get_preloaded_pids():
     PROCESS_QUERY_INFORMATION = 0x0400
     PROCESS_VM_READ = 0x0010
 
-    #Call Enumprocesses to get hold of process id's
+    # Call Enumprocesses to get hold of process id's
     PSAPI.EnumProcesses(byref(lpidProcess), cb, byref(cbNeeded))
 
-    #Number of processes returned
+    # Number of processes returned
     nReturned = cbNeeded.value/sizeof(c_ulong())
     pidProcess = [i for i in lpidProcess][:nReturned]
 
     found = dict()
 
     for pid in pidProcess:
-        #Get handle to the process based on PID
+        # Get handle to the process based on PID
         hProcess = KERNEL32.OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, pid)
         if hProcess:
             PSAPI.EnumProcessModules(hProcess, byref(hModule), sizeof(hModule), byref(count))
@@ -59,7 +60,7 @@ def get_preloaded_pids():
             if process_name.lower() in PRELOADED_APPS:
                 found[process_name.lower()] = pid
 
-            #-- Clean up
+            # -- Clean up
             for i in range(modname._length_):
                 modname[i] = '\x00'
 
@@ -96,28 +97,32 @@ class Thunder(object):
         self._driver_name = "Thunder.sys"
         self._information_file = "minimal.inf"
         self._log_dispatcher_name = "log_dispatcher.pyw"
-        
+
         # holds pid of preloaded office apps
         self.package = package
-        log.info("using package: %s", self.package)
+        log.debug("thunder using package: %s", self.package)
         self.preloaded_pids = get_preloaded_pids()
 
     def _check_pid(self, process_path, pid):
         """Check pid. 
         Return preloaded pid If process is offce, else return original pid.
         """
+        if self.package == 'XLS':
+            return self.preloaded_pids.get('excel.exe')
+
         if not process_path:
             return pid
+
         process_name = process_path.split('\\')[-1].lower()
         log.info("checking pid for process %s, pid %d", process_name, pid)
-        
+
         if process_name in PRELOADED_APPS:
             preloaded_pid = self.preloaded_pids.get(process_name, pid)
             log.info("returning fixed pid %d", preloaded_pid)
             return preloaded_pid
 
         return pid
-    
+
     def _create_device(self):
         # return KERNEL32.CreateFileA(self._driver_pipe, GENERIC_READ | GENERIC_WRITE, 0, None, OPEN_EXISTING, 0, None)
         return win32file.CreateFile(self._driver_pipe_name, win32file.GENERIC_READ | win32file.GENERIC_WRITE, 0, None,
@@ -197,12 +202,12 @@ class Thunder(object):
         log.info("Execution args: [%s][%s]" % (args_logs, args_installer))
         try:
             subprocess.check_call(args_logs, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            
+
             if self.is_x64:
                 KERNEL32.Wow64DisableWow64FsRedirection(0)
             subprocess.check_call(args_inf_installer, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE)
-                
+
             subprocess.check_call(args_installer, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except subprocess.CalledProcessError:
             log.error("Failed [CalledProcessError] installing driver with command args: [%s][%s][%s]" % (
