@@ -16,10 +16,10 @@ from lib.common.constants import SHUTDOWN_MUTEX
 
 KERNEL32 = ctypes.windll.kernel32
 
-PRELOADED_APPS = ['winword.exe', 'excel.exe', 'powerpnt.exe']
-PACKAGE_TO_APP = {
+PACKAGE_TO_PRELOADED_APPS = {
     'XLS': 'excel.exe',
-    'DOC': 'winword.exe'
+    'DOC': 'winword.exe',
+    'PPT': 'powerpnt.exe',
 }
 
 # Set logger
@@ -61,7 +61,7 @@ def get_preloaded_pids():
             PSAPI.GetModuleBaseNameA(hProcess, hModule.value, modname, sizeof(modname))
             process_name = "".join([i for i in modname if i != '\x00'])
             # save process
-            if process_name.lower() in PRELOADED_APPS:
+            if process_name.lower() in PACKAGE_TO_PRELOADED_APPS.values():
                 found[process_name.lower()] = pid
 
             # -- Clean up
@@ -107,25 +107,14 @@ class Thunder(object):
         log.debug("thunder using package: %s", self.package)
         self.preloaded_pids = get_preloaded_pids()
 
-    def _check_pid(self, process_path, pid):
-        """Check pid. 
-        Return preloaded pid If process is offce, else return original pid.
+    def _check_preloaded_pid(self, process_path, pid):
+        """check preloaded pid. 
+        Return preloaded pid If available, else return original pid.
         """
-        if self.package in PACKAGE_TO_APP.keys():
-            return self.preloaded_pids[PACKAGE_TO_APP[self.package]]
-        
-        if not process_path:
-            return pid
-
-        process_name = process_path.split('\\')[-1].lower()
-        log.info("checking pid for process %s, pid %d", process_name, pid)
-
-        if process_name in PRELOADED_APPS:
-            preloaded_pid = self.preloaded_pids.get(process_name, pid)
-            log.info("returning fixed pid %d", preloaded_pid)
-            return preloaded_pid
-
+        if self.package in PACKAGE_TO_PRELOADED_APPS.keys():
+            return self.preloaded_pids[PACKAGE_TO_PRELOADED_APPS[self.package]]
         return pid
+        
 
     def _create_device(self):
         # return KERNEL32.CreateFileA(self._driver_pipe, GENERIC_READ | GENERIC_WRITE, 0, None, OPEN_EXISTING, 0, None)
@@ -284,7 +273,7 @@ class Thunder(object):
 
         # Data
         h_process, h_thread, pid, tid = process_info.hProcess, process_info.hThread, process_info.dwProcessId, process_info.dwThreadId,
-        pid = self._check_pid(process_path, pid)
+        pid = self._check_preloaded_pid(process_path, pid)
 
         # Hack to monitor first pid - this process
         try:
