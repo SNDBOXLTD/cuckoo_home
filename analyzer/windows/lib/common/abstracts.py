@@ -19,6 +19,7 @@ from lib.core.thunder import PACKAGE_TO_PRELOADED_APPS
 
 log = logging.getLogger(__name__)
 
+
 class Package(object):
     """Base abstract analysis package."""
     PATHS = []
@@ -161,14 +162,13 @@ class Package(object):
         with open(adobe_config_path, "a") as file_to_append:
             file_to_append.write(conf_flag)
 
-    def _check_preloaded(self):
+    def _check_preloaded_apps(self):
         """Check if preloaded apps should be killed,
         depends on package type.
         """
         package = type(self).__name__
-            # if package is not office, kill preloaded
         if package not in PACKAGE_TO_PRELOADED_APPS.keys():
-            log.info("package is not preloaded, kill preloaded")
+            log.warning("package %s is not preloaded, kill preloaded", package)
             for preloaded_app in PACKAGE_TO_PRELOADED_APPS.values():
                 os.system("taskkill /im {}".format(preloaded_app))
 
@@ -209,7 +209,7 @@ class Package(object):
         self.init_regkeys(self.REGKEYS)
 
         # check preloaded apps
-        self._check_preloaded()
+        self._check_preloaded_apps()
 
         p = Process()
         if not p.execute(path=path, args=args, dll=dll, free=free,
@@ -242,6 +242,7 @@ class Package(object):
                 p.dump_memory()
 
         return True
+
 
 class Auxiliary(object):
     def __init__(self, options={}, analyzer=None):

@@ -9,8 +9,11 @@ from lib.common.rand import random_string
 
 class XLS(Package):
     """Excel analysis package.
-    We hack excel single instance by loading sample from commandline
+
+    In order to save loading time, we use preloaded excel.exe.
+    To prevent excel to open a new process, we launch the file from commandline.
     """
+    # TODO: Make following code generic
 
     PATHS = [
         ("System32", "cmd.exe"),
@@ -19,7 +22,10 @@ class XLS(Package):
     def start(self, path):
         self._allow_embedded_flash()
         # start sample similar to generic package
+        # TODO: Use Generic package code
+
         cmd_path = self.get_path("cmd.exe")
+
         # Create random cmd.exe window title.
         rand_title = random_string(4, 16)
         args = ["/c", "start", "/wait", '"%s"' % rand_title, path]

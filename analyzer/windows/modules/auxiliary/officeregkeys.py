@@ -16,6 +16,9 @@ log = logging.getLogger(__name__)
 
 class OfficeRegKeys(Auxiliary):
     """Handle RegKeys fix for all office packages.
+    
+    This this handle case of office package being open as a child process without proper preparations
+    e.g. Word -> Excel with macros
     """
 
     # Word

@@ -278,7 +278,7 @@ class Thunder(object):
 
         # Data
         h_process, h_thread, pid, tid = process_info.hProcess, process_info.hThread, process_info.dwProcessId, process_info.dwThreadId,
-        pid = self._check_preloaded_pid(process_path, pid)
+        pid = self._check_preloaded_pid(pid)
 
         # Hack to monitor first pid - this process
         try:
