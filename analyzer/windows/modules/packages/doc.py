@@ -10,7 +10,8 @@ from lib.common.rand import random_string
 
 class DOC(Package):
     """Word analysis package.
-    We hack excel single instance by loading sample from commandline"""
+    We hack winword single instance by loading sample from commandline"""
+    
     PATHS = [
         ("System32", "cmd.exe"),
     ]

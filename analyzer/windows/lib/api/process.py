@@ -18,7 +18,7 @@ from lib.common.defines import THREAD_ALL_ACCESS, PROCESS_ALL_ACCESS
 from lib.common.exceptions import CuckooError
 from lib.common.results import upload_to_host
 from lib.core.ioctl import zer0m0n
-from lib.core.thunder import Thunder, PACKAGE_TO_PRELOADED_APPS
+from lib.core.thunder import Thunder
 
 log = logging.getLogger(__name__)
 
@@ -244,13 +244,7 @@ class Process(object):
         thunder.wait_finish()
 
         log.info("Thunder - post monitor")
-
-        # if package is not office, kill preloaded
-        if package not in PACKAGE_TO_PRELOADED_APPS.keys():
-            log.info("package is not preloaded, kill preloaded")
-            for preloaded_app in PACKAGE_TO_PRELOADED_APPS.values():
-                os.system("taskkill /im {}".format(preloaded_app))
-        
+      
         ret, hprocess, hthread, pid, tid = thunder.create_monitored_process(sample_path, args=args)
         if not ret:
             return False

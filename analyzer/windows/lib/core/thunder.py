@@ -33,6 +33,9 @@ def get_error_string(data):
 def get_preloaded_pids():
     """ Fetch list of preloaded pids
     reference: https://code.activestate.com/recipes/305279-getting-process-information-on-windows.
+
+    Returns:
+        {dict} -- map of preloaded process name to pid. e.g. {"winword.exe": 312}
     """
     arr = c_ulong * 256
     lpidProcess = arr()
@@ -107,14 +110,16 @@ class Thunder(object):
         log.debug("thunder using package: %s", self.package)
         self.preloaded_pids = get_preloaded_pids()
 
-    def _check_preloaded_pid(self, process_path, pid):
+    def _check_preloaded_pid(self, pid):
         """check preloaded pid. 
-        Return preloaded pid If available, else return original pid.
+        Arguments:
+            pid {int} -- pid of injected process
+
+        Returns:
+            {int} -- pid of preloaded app or original pid
         """
-        if self.package in PACKAGE_TO_PRELOADED_APPS.keys():
-            return self.preloaded_pids[PACKAGE_TO_PRELOADED_APPS[self.package]]
-        return pid
-        
+        preloaded_app = PACKAGE_TO_PRELOADED_APPS.get(self.package)
+        return self.preloaded_pids.get(preloaded_app, pid)
 
     def _create_device(self):
         # return KERNEL32.CreateFileA(self._driver_pipe, GENERIC_READ | GENERIC_WRITE, 0, None, OPEN_EXISTING, 0, None)

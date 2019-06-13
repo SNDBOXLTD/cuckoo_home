@@ -15,6 +15,8 @@ from _winreg import CreateKey, SetValueEx, CloseKey, REG_DWORD, REG_SZ
 from lib.api.process import Process
 from lib.common.exceptions import CuckooPackageError
 
+from lib.core.thunder import PACKAGE_TO_PRELOADED_APPS
+
 log = logging.getLogger(__name__)
 
 class Package(object):
@@ -159,6 +161,17 @@ class Package(object):
         with open(adobe_config_path, "a") as file_to_append:
             file_to_append.write(conf_flag)
 
+    def _check_preloaded(self):
+        """Check if preloaded apps should be killed,
+        depends on package type.
+        """
+        package = type(self).__name__
+            # if package is not office, kill preloaded
+        if package not in PACKAGE_TO_PRELOADED_APPS.keys():
+            log.info("package is not preloaded, kill preloaded")
+            for preloaded_app in PACKAGE_TO_PRELOADED_APPS.values():
+                os.system("taskkill /im {}".format(preloaded_app))
+
     def execute(self, path, args, mode=None, maximize=False, env=None,
                 source=None, trigger=None):
         """Starts an executable for analysis.
@@ -194,6 +207,9 @@ class Package(object):
 
         # Setup pre-defined registry keys.
         self.init_regkeys(self.REGKEYS)
+
+        # check preloaded apps
+        self._check_preloaded()
 
         p = Process()
         if not p.execute(path=path, args=args, dll=dll, free=free,
