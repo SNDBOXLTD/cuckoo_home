@@ -10,11 +10,17 @@ from win32api import FormatMessage
 import threading
 from ctypes import *
 import ctypes
-from lib.common.defines import STARTUPINFO, PROCESS_INFORMATION
+from lib.common.defines import STARTUPINFO, PROCESS_INFORMATION, PSAPI
 from lib.common.defines import CREATE_NEW_CONSOLE, CREATE_SUSPENDED
 from lib.common.constants import SHUTDOWN_MUTEX
 
 KERNEL32 = ctypes.windll.kernel32
+
+PACKAGE_TO_PRELOADED_APPS = {
+    'XLS': 'excel.exe',
+    'DOC': 'winword.exe',
+    'PPT': 'powerpnt.exe',
+}
 
 # Set logger
 log = logging.getLogger(__name__)
@@ -24,8 +30,53 @@ def get_error_string(data):
     pass
 
 
+def get_preloaded_pids():
+    """ Fetch list of preloaded pids
+    reference: https://code.activestate.com/recipes/305279-getting-process-information-on-windows.
+
+    Returns:
+        {dict} -- map of preloaded process name to pid. e.g. {"winword.exe": 312}
+    """
+    arr = c_ulong * 256
+    lpidProcess = arr()
+    cb = sizeof(lpidProcess)
+    cbNeeded = c_ulong()
+    hModule = c_ulong()
+    count = c_ulong()
+    modname = c_buffer(30)
+    PROCESS_QUERY_INFORMATION = 0x0400
+    PROCESS_VM_READ = 0x0010
+
+    # Call Enumprocesses to get hold of process id's
+    PSAPI.EnumProcesses(byref(lpidProcess), cb, byref(cbNeeded))
+
+    # Number of processes returned
+    nReturned = cbNeeded.value/sizeof(c_ulong())
+    pidProcess = [i for i in lpidProcess][:nReturned]
+
+    found = dict()
+
+    for pid in pidProcess:
+        # Get handle to the process based on PID
+        hProcess = KERNEL32.OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, pid)
+        if hProcess:
+            PSAPI.EnumProcessModules(hProcess, byref(hModule), sizeof(hModule), byref(count))
+            PSAPI.GetModuleBaseNameA(hProcess, hModule.value, modname, sizeof(modname))
+            process_name = "".join([i for i in modname if i != '\x00'])
+            # save process
+            if process_name.lower() in PACKAGE_TO_PRELOADED_APPS.values():
+                found[process_name.lower()] = pid
+
+            # -- Clean up
+            for i in range(modname._length_):
+                modname[i] = '\x00'
+
+            KERNEL32.CloseHandle(hProcess)
+    return found
+
+
 class Thunder(object):
-    def __init__(self, pipe_name, forwarder_pipe_name, dispatcher_pipe_name, destination):
+    def __init__(self, pipe_name, forwarder_pipe_name, dispatcher_pipe_name, destination, package):
         self.is_x64 = platform.machine().endswith("64")
         self._driver_communication_device = 0
         self.ip, self.port = destination
@@ -53,6 +104,22 @@ class Thunder(object):
         self._driver_name = "Thunder.sys"
         self._information_file = "minimal.inf"
         self._log_dispatcher_name = "log_dispatcher.pyw"
+
+        # holds pid of preloaded office apps
+        self.package = package
+        log.debug("thunder using package: %s", self.package)
+        self.preloaded_pids = get_preloaded_pids()
+
+    def _check_preloaded_pid(self, pid):
+        """check preloaded pid. 
+        Arguments:
+            pid {int} -- pid of injected process
+
+        Returns:
+            {int} -- pid of preloaded app or original pid
+        """
+        preloaded_app = PACKAGE_TO_PRELOADED_APPS.get(self.package)
+        return self.preloaded_pids.get(preloaded_app, pid)
 
     def _create_device(self):
         # return KERNEL32.CreateFileA(self._driver_pipe, GENERIC_READ | GENERIC_WRITE, 0, None, OPEN_EXISTING, 0, None)
@@ -133,12 +200,12 @@ class Thunder(object):
         log.info("Execution args: [%s][%s]" % (args_logs, args_installer))
         try:
             subprocess.check_call(args_logs, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            
+
             if self.is_x64:
                 KERNEL32.Wow64DisableWow64FsRedirection(0)
             subprocess.check_call(args_inf_installer, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE)
-                
+
             subprocess.check_call(args_installer, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except subprocess.CalledProcessError:
             log.error("Failed [CalledProcessError] installing driver with command args: [%s][%s][%s]" % (
@@ -211,6 +278,7 @@ class Thunder(object):
 
         # Data
         h_process, h_thread, pid, tid = process_info.hProcess, process_info.hThread, process_info.dwProcessId, process_info.dwThreadId,
+        pid = self._check_preloaded_pid(pid)
 
         # Hack to monitor first pid - this process
         try:
