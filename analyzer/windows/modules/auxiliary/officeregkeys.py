@@ -109,6 +109,19 @@ class OfficeRegKeys(Auxiliary):
                 # "Data connection has been blocked"
                 "DataConnectionWarnings": 0,
                 "WorkbookLinkWarnings": 0,
+
+                # Disable Data Execution Prevention
+                "EnableDEP": 0
+            },
+        ],
+        [
+            HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Office\\14.0\\Excel\\Security\\ProtectedView",
+            {
+                # Disable Protected View
+                "DisableAttachementsInPV": 1,
+                "DisableInternetFilesInPV": 1,
+                "DisableUnsafeLocationsInPV": 1
             },
         ],
     ]
