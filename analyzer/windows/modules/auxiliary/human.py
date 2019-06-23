@@ -139,13 +139,15 @@ class Human(threading.Thread, Auxiliary):
     def __init__(self, options={}, analyzer=None):
         threading.Thread.__init__(self)
         Auxiliary.__init__(self, options, analyzer)
+        self.office_close_timeout = round(self.options.get("timeout") * 1000 * 0.666)
         self.do_run = True
 
     def stop(self):
         self.do_run = False
 
     def run(self):
-        seconds = 0
+        end = KERNEL32.GetTickCount() + self.office_close_timeout
+        is_office_close = False
 
         # Global disable flag.
         if "human" in self.options:
@@ -168,8 +170,9 @@ class Human(threading.Thread, Auxiliary):
             self.do_click_buttons = int(self.options["human.click_buttons"])
 
         while self.do_run:
-            if seconds and not seconds % 60:
+            if not is_office_close and KERNEL32.GetTickCount() > end:
                 USER32.EnumWindows(EnumWindowsProc(get_office_window), 0)
+                is_office_close = True
 
             if self.do_click_mouse:
                 click_mouse()
@@ -181,4 +184,3 @@ class Human(threading.Thread, Auxiliary):
                 USER32.EnumWindows(EnumWindowsProc(foreach_window), 0)
 
             KERNEL32.Sleep(1000)
-            seconds += 1
