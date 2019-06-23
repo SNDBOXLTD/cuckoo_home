@@ -146,7 +146,7 @@ class Human(threading.Thread, Auxiliary):
 
     def run(self):
         # set office close timeout after 2/3 of analysis (in milliseconds)
-        office_close_timeout = round(self.options.get("timeout") * (2. / 3) * 1000)
+        office_close_timeout = int(self.options.get("timeout") * (2. / 3) * 1000)
         end = KERNEL32.GetTickCount() + office_close_timeout
         is_office_close = False
 
