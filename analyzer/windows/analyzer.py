@@ -36,13 +36,19 @@ from modules import auxiliary
 
 log = logging.getLogger("analyzer")
 
+
 class Files(object):
     PROTECTED_NAMES = ()
+
+    # size limits in bytes
+    MAX_SIZE_SINGLE = 25000000
+    MAX_SIZE_TOTAL = 50000000
 
     def __init__(self):
         self.files = {}
         self.files_orig = {}
         self.dumped = []
+        self.dumped_bytes = 0
 
     def is_protected_filename(self, file_name):
         """Do we want to inject into a process with this name?"""
@@ -84,6 +90,13 @@ class Files(object):
             log.info("Error dumping file from path \"%s\": %s", filepath, e)
             return
 
+        file_size = os.path.getsize(filepath)
+        will_exceed_total = self.dumped_bytes + file_size > self.MAX_SIZE_TOTAL
+
+        if file_size > self.MAX_SIZE_SINGLE or will_exceed_total:
+            log.info("File from path \"%s\" exceeded size limits", filepath)
+            return
+
         filename = "%s_%s" % (sha256[:16], os.path.basename(filepath))
         upload_path = os.path.join("files", filename)
 
@@ -95,6 +108,7 @@ class Files(object):
                 upload_path, self.files.get(filepath.lower(), [])
             )
             self.dumped.append(sha256)
+            self.dumped_bytes += file_size
         except (IOError, socket.error) as e:
             log.error(
                 "Unable to upload dropped file at path \"%s\": %s",
