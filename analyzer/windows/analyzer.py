@@ -429,6 +429,7 @@ class CommandPipeHandler(object):
 
         return response
 
+
 class Analyzer(object):
     """Cuckoo Windows Analyzer.
 
@@ -441,7 +442,6 @@ class Analyzer(object):
         self.config = None
         self.target = None
         self.do_run = True
-        self.time_counter = 0
 
         self.process_lock = threading.Lock()
         self.default_dll = None
@@ -688,6 +688,7 @@ class Analyzer(object):
         # analysis package fails, we have to abort the analysis.
         pids = self.package.start(self.target)
 
+
         # If the analysis package returned a list of process identifiers, we
         # add them to the list of monitored processes and enable the process monitor.
         if pids:
@@ -708,9 +709,14 @@ class Analyzer(object):
             log.info("Enabled timeout enforce, running for the full timeout.")
             pid_check = False
 
+        end = KERNEL32.GetTickCount() + int(self.config.timeout) * 1000
+
         while self.do_run:
-            self.time_counter += 1
-            if self.time_counter == int(self.config.timeout):
+            now = KERNEL32.GetTickCount()
+
+            log.info("Time passed: {}, terminating at {}".format((end-now)/1000, str(self.config.timeout)))
+
+            if now >= end:
                 log.info("Analysis timeout hit, terminating analysis.")
                 break
 
