@@ -643,6 +643,7 @@ class Analyzer(object):
         for module in Auxiliary.__subclasses__():
             # Try to start the auxiliary module.
             try:
+                self.config.options['timeout'] = self.config.timeout # pass timeout to aux modules
                 aux = module(options=self.config.options, analyzer=self)
                 aux_avail.append(aux)
                 aux.init()
