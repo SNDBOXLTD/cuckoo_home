@@ -36,13 +36,19 @@ from modules import auxiliary
 
 log = logging.getLogger("analyzer")
 
+
 class Files(object):
     PROTECTED_NAMES = ()
+
+    # size limits in bytes
+    MAX_SIZE_SINGLE = 25000000
+    MAX_SIZE_TOTAL = 50000000
 
     def __init__(self):
         self.files = {}
         self.files_orig = {}
         self.dumped = []
+        self.dumped_bytes = 0
 
     def is_protected_filename(self, file_name):
         """Do we want to inject into a process with this name?"""
@@ -84,6 +90,13 @@ class Files(object):
             log.info("Error dumping file from path \"%s\": %s", filepath, e)
             return
 
+        file_size = os.path.getsize(filepath)
+        will_exceed_total = self.dumped_bytes + file_size > self.MAX_SIZE_TOTAL
+
+        if file_size > self.MAX_SIZE_SINGLE or will_exceed_total:
+            log.info("File from path \"%s\" exceeded size limits", filepath)
+            return
+
         filename = "%s_%s" % (sha256[:16], os.path.basename(filepath))
         upload_path = os.path.join("files", filename)
 
@@ -95,6 +108,7 @@ class Files(object):
                 upload_path, self.files.get(filepath.lower(), [])
             )
             self.dumped.append(sha256)
+            self.dumped_bytes += file_size
         except (IOError, socket.error) as e:
             log.error(
                 "Unable to upload dropped file at path \"%s\": %s",
@@ -415,6 +429,7 @@ class CommandPipeHandler(object):
 
         return response
 
+
 class Analyzer(object):
     """Cuckoo Windows Analyzer.
 
@@ -427,7 +442,6 @@ class Analyzer(object):
         self.config = None
         self.target = None
         self.do_run = True
-        self.time_counter = 0
 
         self.process_lock = threading.Lock()
         self.default_dll = None
@@ -675,6 +689,7 @@ class Analyzer(object):
         # analysis package fails, we have to abort the analysis.
         pids = self.package.start(self.target)
 
+
         # If the analysis package returned a list of process identifiers, we
         # add them to the list of monitored processes and enable the process monitor.
         if pids:
@@ -695,9 +710,14 @@ class Analyzer(object):
             log.info("Enabled timeout enforce, running for the full timeout.")
             pid_check = False
 
+        end = KERNEL32.GetTickCount() + int(self.config.timeout) * 1000
+
         while self.do_run:
-            self.time_counter += 1
-            if self.time_counter == int(self.config.timeout):
+            now = KERNEL32.GetTickCount()
+
+            log.info("Time passed: {}, terminating at {}".format((end-now)/1000, str(self.config.timeout)))
+
+            if now >= end:
                 log.info("Analysis timeout hit, terminating analysis.")
                 break
 
