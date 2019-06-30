@@ -86,10 +86,9 @@ class SignatureBuffer(object):
 
     PROCESS_RELATIONSHIP_SIG = [
         # ("parent.exe", "child.exe", MONITOR_REASON_MEMORY),  # Injection
-        # ("cmd.exe", "notepad.exe", MONITOR_REASON_ANY),
         ("winword.exe", "cmd.exe", MONITOR_REASON_ANY),
         ("winword.exe", "powershell.exe", MONITOR_REASON_ANY),
-        ("winword.exe", "svchost.exe", MONITOR_REASON_ANY),
+        # ("winword.exe", "svchost.exe", MONITOR_REASON_ANY),
         ("winword.exe", "mshta.exe", MONITOR_REASON_ANY),
         ("winword.exe", "excel.exe", MONITOR_REASON_ANY),
         ("excel.exe", "certutil.exe", MONITOR_REASON_ANY),
@@ -207,7 +206,7 @@ class Thunder(object):
         to_send = msg
         if long == type(msg) or int == type(msg):
             # to_send = ("0" + hex(msg)[2:]).replace("L", "").decode("hex")
-            to_send = ("%x" % (msg)).decode("hex")
+            to_send = ("%08x" % (msg)).decode("hex")
             length = len(to_send)
         else:
             length = len(str(msg))
