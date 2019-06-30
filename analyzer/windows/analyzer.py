@@ -715,7 +715,7 @@ class Analyzer(object):
         while self.do_run:
             now = KERNEL32.GetTickCount()
 
-            log.info("Time passed: {}, terminating at {}".format((end-now)/1000, str(self.config.timeout)))
+            log.debug("Time passed: {}, terminating at {}".format((end-now)/1000, str(self.config.timeout)))
 
             if now >= end:
                 log.info("Analysis timeout hit, terminating analysis.")
