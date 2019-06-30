@@ -88,16 +88,25 @@ class SignatureBuffer(object):
         # ("parent.exe", "child.exe", MONITOR_REASON_MEMORY),  # Injection
         ("winword.exe", "cmd.exe", MONITOR_REASON_ANY),
         ("winword.exe", "powershell.exe", MONITOR_REASON_ANY),
-        # ("winword.exe", "svchost.exe", MONITOR_REASON_ANY),
         ("winword.exe", "mshta.exe", MONITOR_REASON_ANY),
         ("winword.exe", "excel.exe", MONITOR_REASON_ANY),
+        ("winword.exe", "wscript.exe", MONITOR_REASON_ANY),
+        ("winword.exe", "outlook.exe", MONITOR_REASON_ANY),
         ("excel.exe", "certutil.exe", MONITOR_REASON_ANY),
+        ("excel.exe", "cmd.exe", MONITOR_REASON_ANY),
         ("excel.exe", "powershell.exe", MONITOR_REASON_ANY),
+        ("excel.exe", "wscript.exe", MONITOR_REASON_ANY),
+        ("excel.exe", "winword.exe", MONITOR_REASON_ANY),
+        ("excel.exe", "outlook.exe", MONITOR_REASON_ANY),
+        ("WmiPrvSe.exe", "powershell.exe", MONITOR_REASON_ANY),
     ]
+
     SINGLE_PROCESS_SIG = [
         ("EQNEDT32.EXE", MONITOR_REASON_ANY),  # Equetion editor
         ("explorer.exe", MONITOR_REASON_THREAD),
         ("CaLc.EXE", MONITOR_REASON_ANY),
+        ("powershell.exe", MONITOR_REASON_ANY),
+        ("cmd.exe", MONITOR_REASON_ANY),
     ]
 
     TYPE_ONE_PROCESS = 1
@@ -162,6 +171,7 @@ class Thunder(object):
         self._ioctl_thunder_sig_process = 0x222428
 
         # Order is crucial, same in the driver it self
+        self._configuration = {}
         self._configuration_order = ["SSDT", "TIME", "REGISTRY", "FILES",
                                      "EXTRA", "LOGGING", "AGGR", "RPC", "LIGHTMODE", "MEMDUMP"]
 
@@ -402,10 +412,13 @@ class Thunder(object):
             return False
 
         log.info("New pipename initialized: [%s]", self._driver_log_pipe_name)
-        return self.initialize_signatures()
+        return self.initialize_lightmode_signatures()
 
 
-    def initialize_signatures(self):
+    def initialize_lightmode_signatures(self):
+        if not self._configuration.get("lightmode", False):
+            return True
+
         try:
             # signatures bugger
             signatures_buffer = SignatureBuffer().buffer
@@ -431,6 +444,7 @@ class Thunder(object):
 
         try:
             # Parse configurations
+            self._configuration = configuration # save conf dict copy
             binary_conf = self.parse_configuration(configuration)
             log.info("Driver configuration is: [0x%08X]" % binary_conf)
 
