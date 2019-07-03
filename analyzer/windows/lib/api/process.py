@@ -215,10 +215,6 @@ class Process(object):
 
 
     def process_thunder(self, sample_path, kernel_pipe, forwarder_pipe, dispatcher_pipe, dest, driver_options, args=None, package=None):
-        thunder = Thunder(kernel_pipe, forwarder_pipe, dispatcher_pipe, dest, package)
-
-        if not thunder.install():
-            return False
 
         conf = {
             "SSDT": True,
@@ -236,7 +232,12 @@ class Process(object):
         log.info("thunder configuration: [%s]", str(conf))
         log.info("[2] thunder configuration: [%s]", str(driver_options))
 
-        if not thunder.monitor(conf):
+        thunder = Thunder(kernel_pipe, forwarder_pipe, dispatcher_pipe, dest, package, conf)
+
+        if not thunder.install():
+            return False
+
+        if not thunder.monitor():
             return False
 
         # Wait for SHUTDOWN_MUTEX and then stop monitoring

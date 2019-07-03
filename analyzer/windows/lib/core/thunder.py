@@ -158,7 +158,7 @@ class SignatureBuffer(object):
 
 
 class Thunder(object):
-    def __init__(self, pipe_name, forwarder_pipe_name, dispatcher_pipe_name, destination, package):
+    def __init__(self, pipe_name, forwarder_pipe_name, dispatcher_pipe_name, destination, package, configuration):
         self.is_x64 = platform.machine().endswith("64")
         self._driver_communication_device = 0
         self.ip, self.port = destination
@@ -171,7 +171,7 @@ class Thunder(object):
         self._ioctl_thunder_sig_process = 0x222428
 
         # Order is crucial, same in the driver it self
-        self._configuration = {}
+        self._configuration = configuration
         self._configuration_order = ["SSDT", "TIME", "REGISTRY", "FILES",
                                      "EXTRA", "LOGGING", "AGGR", "RPC", "LIGHTMODE", "MEMDUMP"]
 
@@ -434,7 +434,7 @@ class Thunder(object):
         log.info("initialize_signatures initialized: [%s]", self._driver_log_pipe_name)
         return True
 
-    def monitor(self, configuration):
+    def monitor(self):
         # Initialize device
         binary_conf = ""
 
@@ -444,8 +444,7 @@ class Thunder(object):
 
         try:
             # Parse configurations
-            self._configuration = configuration # save conf dict copy
-            binary_conf = self.parse_configuration(configuration)
+            binary_conf = self.parse_configuration()
             log.info("Driver configuration is: [0x%08X]" % binary_conf)
 
             # Send configuration
@@ -463,11 +462,11 @@ class Thunder(object):
         log.info("Driver monitor initialized")
         return True
 
-    def parse_configuration(self, conf):
+    def parse_configuration(self):
         number = ""
-        log.info("Configuration dict: [%s]", str(conf))
+        log.info("Configuration dict: [%s]", str(self._configuration))
         for conf_title in self._configuration_order:
-            val = conf.get(conf_title.lower(), False) or conf.get(conf_title.upper(), False)
+            val = self._configuration.get(conf_title.lower(), False) or self._configuration.get(conf_title.upper(), False)
             log.info("Driver Configuration [%s] : [%s]", conf_title, str(val))
             if val:
                 number = "1" + number
