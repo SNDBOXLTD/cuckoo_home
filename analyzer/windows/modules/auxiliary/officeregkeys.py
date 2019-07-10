@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 class OfficeRegKeys(Auxiliary):
     """Handle RegKeys fix for all office packages.
-    
+
     This this handle case of office package being open as a child process without proper preparations
     e.g. Word -> Excel with macros
     """
@@ -44,6 +44,32 @@ class OfficeRegKeys(Auxiliary):
                 # is not corrupted and is from trusted source before opening
                 # the file. Do you want to open the file now?"
                 "ExtensionHardening": 0,
+
+                # Disable Data Execution Prevention
+                "EnableDEP": 0
+            },
+        ],
+        [
+            HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Office\\14.0\\Word\\Security\\ProtectedView",
+            {
+                # Disable Protected View
+                "DisableAttachementsInPV": 1,
+                "DisableInternetFilesInPV": 1,
+                "DisableUnsafeLocationsInPV": 1
+            },
+        ],
+        [
+            HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Office\\14.0\\Word\\Security\\FileBlock",
+            {
+                # turn off file block for legacy types
+                "OpenInProtectedView": 2,
+                "Word2000Files": 0,
+                "Word60Files": 0,
+                "Word95Files": 0,
+                "Word2Files": 0,
+                "WordXPFiles": 0
             },
         ],
         [
@@ -83,6 +109,19 @@ class OfficeRegKeys(Auxiliary):
                 # "Data connection has been blocked"
                 "DataConnectionWarnings": 0,
                 "WorkbookLinkWarnings": 0,
+
+                # Disable Data Execution Prevention
+                "EnableDEP": 0
+            },
+        ],
+        [
+            HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Office\\14.0\\Excel\\Security\\ProtectedView",
+            {
+                # Disable Protected View
+                "DisableAttachementsInPV": 1,
+                "DisableInternetFilesInPV": 1,
+                "DisableUnsafeLocationsInPV": 1
             },
         ],
     ]
