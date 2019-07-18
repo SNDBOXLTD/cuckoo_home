@@ -5,13 +5,13 @@
 
 import logging
 import os
-import subprocess
 
 from _winreg import HKEY_LOCAL_MACHINE, HKEY_CURRENT_USER
 
 from lib.common.abstracts import Package
 
 log = logging.getLogger(__name__)
+
 
 class IE(Package):
     """Internet Explorer analysis package."""
@@ -95,6 +95,22 @@ class IE(Package):
                 "CheckExeSignatures": "no",
             },
         ],
+        [
+            HKEY_LOCAL_MACHINE,
+            "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer",
+            {
+                # Disable SmartScreen Windows 8
+                "SmartScreenEnabled": "Off"
+            }
+        ],
+        [
+            HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Internet Explorer\\PhishingFilter",
+            {
+                # Disable SmartScreen Filter Windows 7
+                "EnabledV9": 0
+            }
+        ],
     ]
 
     def setup_proxy(self, proxy_host):
@@ -118,17 +134,12 @@ class IE(Package):
 
         # If it's a HTML file, force an extension, or otherwise Internet
         # Explorer will open it as a text file or something else non-html.
-        if os.path.exists(target) and not target.endswith((".htm", ".html", ".mht", ".mhtml")):
+        if os.path.exists(target) and not target.endswith((".htm", ".html", ".mht", ".mhtml", ".url", ".swf")):
             os.rename(target, target + ".html")
             target += ".html"
             log.info("Submitted file is missing extension, adding .html")
 
-        bin_path = os.path.join(self.analyzer.path, "bin\\sndBot")
-
-        ie_bot_bin = os.path.join(bin_path, "sndbot.exe")
-        ie_driver = os.path.join(bin_path, "IEDriverServer_32bit.exe")
-
-        arguments = ["--b", "explorer", "--t", "1", "--i", target, "--d", ie_driver]
+        iexplore = self.get_path("Internet Explorer")
         return self.execute(
-            ie_bot_bin, args=arguments, maximize=True, mode="iexplore"
+            iexplore, args=[target], maximize=True, mode="iexplore"
         )
