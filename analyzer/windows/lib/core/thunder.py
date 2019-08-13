@@ -92,12 +92,14 @@ class SignatureBuffer(object):
         ("winword.exe", "excel.exe", MONITOR_REASON_ANY),
         ("winword.exe", "wscript.exe", MONITOR_REASON_ANY),
         ("winword.exe", "outlook.exe", MONITOR_REASON_ANY),
+        ("winword.exe", "msiexec.exe", MONITOR_REASON_ANY),
         ("excel.exe", "certutil.exe", MONITOR_REASON_ANY),
         ("excel.exe", "cmd.exe", MONITOR_REASON_ANY),
         ("excel.exe", "powershell.exe", MONITOR_REASON_ANY),
         ("excel.exe", "wscript.exe", MONITOR_REASON_ANY),
         ("excel.exe", "winword.exe", MONITOR_REASON_ANY),
         ("excel.exe", "outlook.exe", MONITOR_REASON_ANY),
+        ("excel.exe", "msiexec.exe", MONITOR_REASON_ANY),
         ("WmiPrvSe.exe", "powershell.exe", MONITOR_REASON_ANY),
     ]
 
