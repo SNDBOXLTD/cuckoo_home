@@ -55,6 +55,7 @@ class OfficeRegKeys(Auxiliary):
             {
                 # Disable Protected View
                 "DisableAttachementsInPV": 1,
+                "DisableAttachmentsInPV": 1,
                 "DisableInternetFilesInPV": 1,
                 "DisableUnsafeLocationsInPV": 1
             },
@@ -116,10 +117,19 @@ class OfficeRegKeys(Auxiliary):
         ],
         [
             HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Office\\14.0\\Excel\\Security\\FileValidation",
+            {
+                # Disable file validation check onload
+                "EnableOnLoad": 0
+            },
+        ],
+        [
+            HKEY_CURRENT_USER,
             "Software\\Microsoft\\Office\\14.0\\Excel\\Security\\ProtectedView",
             {
                 # Disable Protected View
                 "DisableAttachementsInPV": 1,
+                "DisableAttachmentsInPV": 1,
                 "DisableInternetFilesInPV": 1,
                 "DisableUnsafeLocationsInPV": 1
             },
