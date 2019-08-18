@@ -55,6 +55,7 @@ class OfficeRegKeys(Auxiliary):
             {
                 # Disable Protected View
                 "DisableAttachementsInPV": 1,
+                "DisableAttachmentsInPV": 1,
                 "DisableInternetFilesInPV": 1,
                 "DisableUnsafeLocationsInPV": 1
             },
@@ -116,12 +117,40 @@ class OfficeRegKeys(Auxiliary):
         ],
         [
             HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Office\\14.0\\Excel\\Security\\FileValidation",
+            {
+                # Disable file validation check onload
+                "EnableOnLoad": 0
+            },
+        ],
+        [
+            HKEY_CURRENT_USER,
             "Software\\Microsoft\\Office\\14.0\\Excel\\Security\\ProtectedView",
             {
                 # Disable Protected View
                 "DisableAttachementsInPV": 1,
+                "DisableAttachmentsInPV": 1,
                 "DisableInternetFilesInPV": 1,
                 "DisableUnsafeLocationsInPV": 1
+            },
+        ],
+        [
+            HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Office\\14.0\\Excel\\Security\\FileBlock",
+            {
+                # turn off file block for legacy types
+                "OpenInProtectedView": 2,
+                "xl97workbooksandtemplates": 0,
+                "xl97addins": 0,
+                "xl9597workbooksandtemplates": 0,
+                "xl95workbooks": 0,
+                "xl4workbooks": 0,
+                "xl4worksheets": 0,
+                "xl4macros": 0,
+                "xl3worksheets": 0,
+                "xl3macros": 0,
+                "xl2worksheets": 0,
+                "xl2macros": 0
             },
         ],
     ]
