@@ -107,8 +107,8 @@ class SignatureBuffer(object):
         ("EQNEDT32.EXE", MONITOR_REASON_ANY),  # Equetion editor
         ("explorer.exe", MONITOR_REASON_THREAD),
         ("CaLc.EXE", MONITOR_REASON_ANY),
-        ("powershell.exe", MONITOR_REASON_ANY),
-        ("cmd.exe", MONITOR_REASON_ANY),
+        ("powershell.exe", MONITOR_REASON_CREATE),
+        ("cmd.exe", MONITOR_REASON_CREATE),
     ]
 
     TYPE_ONE_PROCESS = 1
