@@ -88,6 +88,9 @@ class OfficeRegKeys(Auxiliary):
                 # Enable all ActiveX controls without restrictions & prompting.
                 "DisableAllActiveX": 0,
                 "UFIControls": 1,
+                
+                # Publisher Automation Security Level 
+                "automationsecuritypublisher": 1,
             },
         ],
     ]
@@ -158,6 +161,13 @@ class OfficeRegKeys(Auxiliary):
     REGKEYS += [
         [
             HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Office\\14.0\\Publisher",
+            {
+                "promptforbadfiles": 1,
+            },
+        ],
+        [
+            HKEY_CURRENT_USER,
             "Software\\Microsoft\\Office\\14.0\\Publisher\\Security",
             {
                 # Enable VBA macros in Office 2010.
@@ -169,8 +179,29 @@ class OfficeRegKeys(Auxiliary):
                 # is not corrupted and is from trusted source before opening
                 # the file. Do you want to open the file now?"
                 "ExtensionHardening": 0,
+
+                # Disable Data Execution Prevention
+                "EnableDEP": 0,
             },
-        ]
+        ],
+        [
+            HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Office\\14.0\\Publisher\\Security\\FileValidation",
+            {
+                # Disable file validation check onload
+                "EnableOnLoad": 0
+            },
+        ],
+                [
+            HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Office\\14.0\\Word\\Security\\ProtectedView",
+            {
+                # Disable Protected View
+                "DisableAttachmentsInPV": 1,
+                "DisableInternetFilesInPV": 1,
+                "DisableUnsafeLocationsInPV": 1
+            },
+        ],
     ]
     # PPT
     REGKEYS += [
@@ -187,6 +218,14 @@ class OfficeRegKeys(Auxiliary):
                 # is not corrupted and is from trusted source before opening
                 # the file. Do you want to open the file now?"
                 "ExtensionHardening": 0,
+            },
+        ],
+        [
+            HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Office\\14.0\\Powerpoint\\Security\\FileValidation",
+            {
+                # Disable file validation check onload
+                "EnableOnLoad": 0
             },
         ],
         [
