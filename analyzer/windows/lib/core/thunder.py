@@ -175,7 +175,7 @@ class Thunder(object):
         # Order is crucial, same in the driver it self
         self._configuration = configuration
         self._configuration_order = ["SSDT", "TIME", "REGISTRY", "FILES",
-                                     "EXTRA", "LOGGING", "AGGR", "RPC", "LIGHTMODE", "MEMDUMP"]
+                                     "EXTRA", "LOGGING", "AGGR", "RPC", "ULTRAFAST", "MEMDUMP"]
 
         # General configurations
         self._driver_pipe_name = "\\\\.\\Thunder"
@@ -414,11 +414,11 @@ class Thunder(object):
             return False
 
         log.info("New pipename initialized: [%s]", self._driver_log_pipe_name)
-        return self.initialize_lightmode_signatures()
+        return self.initialize_ultrafast_signatures()
 
 
-    def initialize_lightmode_signatures(self):
-        if not self._configuration.get("lightmode", False):
+    def initialize_ultrafast_signatures(self):
+        if not self._configuration.get("ultrafast", False):
             return True
 
         try:
