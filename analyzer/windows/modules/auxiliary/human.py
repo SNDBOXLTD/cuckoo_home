@@ -137,12 +137,17 @@ def double_click(x, y):
     click_mouse(x, y)
     click_mouse(x, y)
 
+def set_full_screen(hwnd):
+    SW_MAXIMISE = 3
+    USER32.ShowWindow(hwnd, SW_MAXIMISE)
+    KERNEL32.Sleep(15)
+
 
 class Coordinates(object):
     '''window coordinates helper class. '''
 
     X_JUMPS = 55
-    Y_JUMPS = 55
+    Y_JUMPS = 65
 
     def __init__(self, x_padding, y_padding):
         """
@@ -151,8 +156,8 @@ class Coordinates(object):
         """
         self.y_padding = y_padding
         self.x_padding = x_padding
-        self.max_x = USER32.GetSystemMetrics(0)
-        self.max_y = USER32.GetSystemMetrics(1)
+        self.max_x = USER32.GetSystemMetrics(0) - x_padding * 1.75
+        self.max_y = USER32.GetSystemMetrics(1) - 100
         self._generator = self._cords_generator()
 
     def _cords_generator(self):
@@ -189,7 +194,7 @@ class Human(threading.Thread, Auxiliary):
         Auxiliary.__init__(self, options, analyzer)
         self.do_run = True
         self.parse_options()
-        self.coordinates = Coordinates(150, 350)
+        self.coordinates = Coordinates(180, 300)
 
     def parse_options(self):
         # Global disable flag.
@@ -217,15 +222,19 @@ class Human(threading.Thread, Auxiliary):
 
     def run(self):
         # human starts before the sample invocation, wait for 8s to start
-        minimal_timeout = KERNEL32.GetTickCount() + 8000
+        minimal_timeout = KERNEL32.GetTickCount() + 3000
         # set office close timeout after 2/3 of analysis (in milliseconds)
         office_close_timeout = int(self.options.get("timeout") * (3. / 4) * 1000)
         end = KERNEL32.GetTickCount() + office_close_timeout
         is_office_close = False
+        is_full_screen = False
+        is_ultrafast = self.options.get("timeout") == 25
+        # adaptive sleep timer
+        sleep = 15 if is_ultrafast else 1000
 
         while self.do_run:
 
-            KERNEL32.Sleep(1000) # we wait for minimal timeout anyway so no loss here
+            KERNEL32.Sleep(sleep) # we wait for minimal timeout anyway so no loss here
 
             if KERNEL32.GetTickCount() < minimal_timeout:
                 continue
@@ -237,13 +246,17 @@ class Human(threading.Thread, Auxiliary):
             if self.do_click_mouse and self.do_move_mouse:
                 # extract foregroud window name
                 fg_window_name = ""
+                hwnd = USER32.GetForegroundWindow()
                 try:
-                    fg_window_name = get_window_text(USER32.GetForegroundWindow()).lower()
+                    fg_window_name = get_window_text(hwnd).lower()
                 except:
                     log.exception("failed to extract window name")
                     pass
 
                 if "word" in fg_window_name:
+                    if not is_full_screen:
+                        set_full_screen(hwnd)
+                        is_full_screen = True
                     x, y = self.coordinates.next()
                     move_mouse(x, y)
                     double_click(x, y)
@@ -251,7 +264,6 @@ class Human(threading.Thread, Auxiliary):
                     # make random move
                     x, y = self.coordinates.random()
                     move_mouse(x, y)
-                    click_mouse(x, y)
 
             if self.do_click_buttons:
                 USER32.EnumWindows(EnumWindowsProc(foreach_window), 0)
