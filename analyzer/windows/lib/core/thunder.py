@@ -10,6 +10,7 @@ from win32api import FormatMessage
 import threading
 from ctypes import *
 import ctypes
+import struct
 from lib.common.defines import STARTUPINFO, PROCESS_INFORMATION, PSAPI
 from lib.common.defines import CREATE_NEW_CONSOLE, CREATE_SUSPENDED
 from lib.common.constants import SHUTDOWN_MUTEX
@@ -75,8 +76,91 @@ def get_preloaded_pids():
     return found
 
 
+class SignatureBuffer(object):
+    MONITOR_REASON_FIRST_CREATE = 0
+    MONITOR_REASON_CREATE = 1
+    MONITOR_REASON_THREAD = 2
+    MONITOR_REASON_MEMORY = 3
+    MONITOR_REASON_RPC = 4
+    MONITOR_REASON_ANY = 0xFFFFFFFF
+
+    PROCESS_RELATIONSHIP_SIG = [
+        # ("parent.exe", "child.exe", MONITOR_REASON_MEMORY),  # Injection
+        ("winword.exe", "cmd.exe", MONITOR_REASON_ANY),
+        ("winword.exe", "powershell.exe", MONITOR_REASON_ANY),
+        ("winword.exe", "mshta.exe", MONITOR_REASON_ANY),
+        ("winword.exe", "excel.exe", MONITOR_REASON_ANY),
+        ("winword.exe", "wscript.exe", MONITOR_REASON_ANY),
+        ("winword.exe", "outlook.exe", MONITOR_REASON_ANY),
+        ("winword.exe", "msiexec.exe", MONITOR_REASON_ANY),
+        ("excel.exe", "certutil.exe", MONITOR_REASON_ANY),
+        ("excel.exe", "cmd.exe", MONITOR_REASON_ANY),
+        ("excel.exe", "powershell.exe", MONITOR_REASON_ANY),
+        ("excel.exe", "wscript.exe", MONITOR_REASON_ANY),
+        ("excel.exe", "winword.exe", MONITOR_REASON_ANY),
+        ("excel.exe", "outlook.exe", MONITOR_REASON_ANY),
+        ("excel.exe", "msiexec.exe", MONITOR_REASON_ANY),
+        ("WmiPrvSe.exe", "powershell.exe", MONITOR_REASON_ANY),
+    ]
+
+    SINGLE_PROCESS_SIG = [
+        ("EQNEDT32.EXE", MONITOR_REASON_ANY),  # Equetion editor
+        ("explorer.exe", MONITOR_REASON_THREAD),
+        ("CaLc.EXE", MONITOR_REASON_ANY),
+        ("powershell.exe", MONITOR_REASON_CREATE),
+        ("cmd.exe", MONITOR_REASON_CREATE),
+    ]
+
+    TYPE_ONE_PROCESS = 1
+    TYPE_RELATIONSHIP = 2
+
+    def __init__(self):
+        self.buffer = self.get_sig_buff()
+
+    def get_sig_buff(self):
+        buffer = ""
+        # One process
+        
+        # Single process 
+        for proc_name, reason in self.SINGLE_PROCESS_SIG:
+            proc_name = proc_name.encode("utf-16-le") # Unicode WCHAR
+            
+            s = ""
+            s += struct.pack("I", self.TYPE_ONE_PROCESS) # Type
+            s += struct.pack("I", reason)
+            s += struct.pack("64s", proc_name)
+            
+            # Set length as first parameter
+            s = struct.pack("I", len(s) + 4) + s
+            
+            # Add to buffer
+            buffer += s
+            
+        # Relationship
+        for parent_proc_name, child_proc_name, reason in self.PROCESS_RELATIONSHIP_SIG:
+            parent_proc_name = parent_proc_name.encode("utf-16-le") # Unicode WCHAR
+            child_proc_name = child_proc_name.encode("utf-16-le") # Unicode WCHAR
+            
+            s = ""
+            s += struct.pack("I", self.TYPE_RELATIONSHIP)
+            s += struct.pack("I", reason)
+            s += struct.pack("64s", parent_proc_name)
+            s += struct.pack("64s", child_proc_name)
+            
+            # Set length as first parameter
+            s = struct.pack("I", len(s) + 4) + s
+            
+            # Add to buffer
+            buffer += s
+            
+        # print buffer
+        # log.debug(buffer)
+        # log.debug(buffer.encode("hex"))
+        return buffer
+
+
 class Thunder(object):
-    def __init__(self, pipe_name, forwarder_pipe_name, dispatcher_pipe_name, destination, package):
+    def __init__(self, pipe_name, forwarder_pipe_name, dispatcher_pipe_name, destination, package, configuration):
         self.is_x64 = platform.machine().endswith("64")
         self._driver_communication_device = 0
         self.ip, self.port = destination
@@ -86,9 +170,12 @@ class Thunder(object):
         self._ioctl_configuration = 0x22240C
         self._ioctl_communication_new_pipe_name = 0x222410
         self._ioctl_stop_monitoring = 0x22241C
+        self._ioctl_thunder_sig_process = 0x222428
 
         # Order is crucial, same in the driver it self
-        self._configuration_order = ["SSDT", "TIME", "REGISTRY", "FILES", "EXTRA", "LOGGING", "AGGRESSIVE", "RPC"]
+        self._configuration = configuration
+        self._configuration_order = ["SSDT", "TIME", "REGISTRY", "FILES",
+                                     "EXTRA", "LOGGING", "AGGRESSIVE", "RPC", "ULTRAFAST", "MEMDUMP"]
 
         # General configurations
         self._driver_pipe_name = "\\\\.\\Thunder"
@@ -110,6 +197,7 @@ class Thunder(object):
         log.debug("thunder using package: %s", self.package)
         self.preloaded_pids = get_preloaded_pids()
 
+
     def _check_preloaded_pid(self, pid):
         """check preloaded pid. 
         Arguments:
@@ -130,7 +218,7 @@ class Thunder(object):
         to_send = msg
         if long == type(msg) or int == type(msg):
             # to_send = ("0" + hex(msg)[2:]).replace("L", "").decode("hex")
-            to_send = ("%x" % (msg)).decode("hex")
+            to_send = ("%08x" % (msg)).decode("hex")
             length = len(to_send)
         else:
             length = len(str(msg))
@@ -326,9 +414,29 @@ class Thunder(object):
             return False
 
         log.info("New pipename initialized: [%s]", self._driver_log_pipe_name)
+        return self.initialize_ultrafast_signatures()
+
+
+    def initialize_ultrafast_signatures(self):
+        if not self._configuration.get("ultrafast", False):
+            return True
+
+        try:
+            # signatures bugger
+            signatures_buffer = SignatureBuffer().buffer
+            self._send_ioctl(self._driver_communication_device, self._ioctl_thunder_sig_process, signatures_buffer)
+        except Exception, e:
+            error_code = KERNEL32.GetLastError()
+            log.error("Failed initialize_signatures, GLE: [%d]-[%s], dev: [%s]", error_code,
+                      get_error_string(error_code), self._driver_log_pipe_name)
+            log.error(str(e))
+            raw_input()
+            return False
+
+        log.info("initialize_signatures initialized: [%s]", self._driver_log_pipe_name)
         return True
 
-    def monitor(self, configuration):
+    def monitor(self):
         # Initialize device
         binary_conf = ""
 
@@ -338,7 +446,7 @@ class Thunder(object):
 
         try:
             # Parse configurations
-            binary_conf = self.parse_configuration(configuration)
+            binary_conf = self.parse_configuration()
             log.info("Driver configuration is: [0x%08X]" % binary_conf)
 
             # Send configuration
@@ -356,11 +464,11 @@ class Thunder(object):
         log.info("Driver monitor initialized")
         return True
 
-    def parse_configuration(self, conf):
+    def parse_configuration(self):
         number = ""
-        log.info("Configuration dict: [%s]", str(conf))
+        log.info("Configuration dict: [%s]", str(self._configuration))
         for conf_title in self._configuration_order:
-            val = conf.get(conf_title.lower(), False) or conf.get(conf_title.upper(), False)
+            val = self._configuration.get(conf_title.lower(), False) or self._configuration.get(conf_title.upper(), False)
             log.info("Driver Configuration [%s] : [%s]", conf_title, str(val))
             if val:
                 number = "1" + number
