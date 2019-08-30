@@ -55,6 +55,7 @@ class OfficeRegKeys(Auxiliary):
             {
                 # Disable Protected View
                 "DisableAttachementsInPV": 1,
+                "DisableAttachmentsInPV": 1,
                 "DisableInternetFilesInPV": 1,
                 "DisableUnsafeLocationsInPV": 1
             },
@@ -87,6 +88,9 @@ class OfficeRegKeys(Auxiliary):
                 # Enable all ActiveX controls without restrictions & prompting.
                 "DisableAllActiveX": 0,
                 "UFIControls": 1,
+                
+                # Publisher Automation Security Level 
+                "automationsecuritypublisher": 1,
             },
         ],
     ]
@@ -116,17 +120,52 @@ class OfficeRegKeys(Auxiliary):
         ],
         [
             HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Office\\14.0\\Excel\\Security\\FileValidation",
+            {
+                # Disable file validation check onload
+                "EnableOnLoad": 0
+            },
+        ],
+        [
+            HKEY_CURRENT_USER,
             "Software\\Microsoft\\Office\\14.0\\Excel\\Security\\ProtectedView",
             {
                 # Disable Protected View
                 "DisableAttachementsInPV": 1,
+                "DisableAttachmentsInPV": 1,
                 "DisableInternetFilesInPV": 1,
                 "DisableUnsafeLocationsInPV": 1
+            },
+        ],
+        [
+            HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Office\\14.0\\Excel\\Security\\FileBlock",
+            {
+                # turn off file block for legacy types
+                "OpenInProtectedView": 2,
+                "xl97workbooksandtemplates": 0,
+                "xl97addins": 0,
+                "xl9597workbooksandtemplates": 0,
+                "xl95workbooks": 0,
+                "xl4workbooks": 0,
+                "xl4worksheets": 0,
+                "xl4macros": 0,
+                "xl3worksheets": 0,
+                "xl3macros": 0,
+                "xl2worksheets": 0,
+                "xl2macros": 0
             },
         ],
     ]
     # PUBLISHER
     REGKEYS += [
+        [
+            HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Office\\14.0\\Publisher",
+            {
+                "promptforbadfiles": 1,
+            },
+        ],
         [
             HKEY_CURRENT_USER,
             "Software\\Microsoft\\Office\\14.0\\Publisher\\Security",
@@ -140,8 +179,29 @@ class OfficeRegKeys(Auxiliary):
                 # is not corrupted and is from trusted source before opening
                 # the file. Do you want to open the file now?"
                 "ExtensionHardening": 0,
+
+                # Disable Data Execution Prevention
+                "EnableDEP": 0,
             },
-        ]
+        ],
+        [
+            HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Office\\14.0\\Publisher\\Security\\FileValidation",
+            {
+                # Disable file validation check onload
+                "EnableOnLoad": 0
+            },
+        ],
+                [
+            HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Office\\14.0\\Word\\Security\\ProtectedView",
+            {
+                # Disable Protected View
+                "DisableAttachmentsInPV": 1,
+                "DisableInternetFilesInPV": 1,
+                "DisableUnsafeLocationsInPV": 1
+            },
+        ],
     ]
     # PPT
     REGKEYS += [
@@ -158,6 +218,14 @@ class OfficeRegKeys(Auxiliary):
                 # is not corrupted and is from trusted source before opening
                 # the file. Do you want to open the file now?"
                 "ExtensionHardening": 0,
+            },
+        ],
+        [
+            HKEY_CURRENT_USER,
+            "Software\\Microsoft\\Office\\14.0\\Powerpoint\\Security\\FileValidation",
+            {
+                # Disable file validation check onload
+                "EnableOnLoad": 0
             },
         ],
         [
