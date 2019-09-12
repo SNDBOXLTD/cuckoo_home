@@ -106,6 +106,7 @@ def get_office_window(hwnd, lparam):
         # TODO Would " - Microsoft (Word|Excel|PowerPoint)$" be better?
         if re.search("- (Microsoft|Word|Excel|PowerPoint)", text):
             USER32.SendNotifyMessageW(hwnd, WM_CLOSE, None, None)
+            KERNEL32.Sleep(1000)
             log.info("Closed Office window.")
     return True
 
@@ -126,28 +127,27 @@ def move_mouse(x, y):
 
 
 def click_mouse(x, y):
-    # Mouse down.
     USER32.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, x, y, 0, 0)
-    KERNEL32.Sleep(50)
-    # Mouse up.
     USER32.mouse_event(win32con.MOUSEEVENTF_LEFTUP, x, y, 0, 0)
 
 
 def double_click(x, y):
     click_mouse(x, y)
+    KERNEL32.Sleep(50)
     click_mouse(x, y)
+
 
 def set_full_screen(hwnd):
     SW_MAXIMISE = 3
     USER32.ShowWindow(hwnd, SW_MAXIMISE)
-    KERNEL32.Sleep(15)
+    KERNEL32.Sleep(100)
 
 
 class Coordinates(object):
     '''window coordinates helper class. '''
 
     X_JUMPS = 55
-    Y_JUMPS = 65
+    Y_JUMPS = 60
 
     def __init__(self, x_padding, y_padding):
         """
@@ -156,8 +156,8 @@ class Coordinates(object):
         """
         self.y_padding = y_padding
         self.x_padding = x_padding
-        self.max_x = USER32.GetSystemMetrics(0) - x_padding * 1.75
-        self.max_y = USER32.GetSystemMetrics(1) - 100
+        self.max_x = int(USER32.GetSystemMetrics(0) - x_padding)
+        self.max_y = int(USER32.GetSystemMetrics(1) - 100)
         self._generator = self._cords_generator()
 
     def _cords_generator(self):
@@ -175,7 +175,11 @@ class Coordinates(object):
 
     def next(self):
         '''Retrun next cords of screen matrix. '''
-        return next(self._generator)
+        try:
+            x, y = next(self._generator)
+        except:
+            x, y = self.center()
+        return x, y
 
     def center(self):
         '''Return center screen cords.'''
@@ -194,7 +198,7 @@ class Human(threading.Thread, Auxiliary):
         Auxiliary.__init__(self, options, analyzer)
         self.do_run = True
         self.parse_options()
-        self.coordinates = Coordinates(180, 300)
+        self.coordinates = Coordinates(170, 300)
 
     def parse_options(self):
         # Global disable flag.
@@ -222,24 +226,24 @@ class Human(threading.Thread, Auxiliary):
 
     def run(self):
         # human starts before the sample invocation, wait for 8s to start
-        minimal_timeout = KERNEL32.GetTickCount() + 3000
+        minimal_timeout = KERNEL32.GetTickCount() + 2000
         # set office close timeout after 2/3 of analysis (in milliseconds)
-        office_close_timeout = int(self.options.get("timeout") * (3. / 4) * 1000)
-        end = KERNEL32.GetTickCount() + office_close_timeout
+        office_close_sec = int(self.options.get("timeout") * (3. / 4) * 1000)
+        office_close_timeout = KERNEL32.GetTickCount() + office_close_sec
         is_office_close = False
         is_full_screen = False
         is_ultrafast = self.options.get("timeout") == 25
         # adaptive sleep timer
-        sleep = 15 if is_ultrafast else 1000
+        sleep = 50 if is_ultrafast else 1000
 
         while self.do_run:
 
-            KERNEL32.Sleep(sleep) # we wait for minimal timeout anyway so no loss here
+            KERNEL32.Sleep(sleep)  # we wait for minimal timeout anyway so no loss here
 
             if KERNEL32.GetTickCount() < minimal_timeout:
                 continue
 
-            if not is_office_close and KERNEL32.GetTickCount() > end:
+            if not is_office_close and KERNEL32.GetTickCount() > office_close_timeout:
                 USER32.EnumWindows(EnumWindowsProc(get_office_window), 0)
                 is_office_close = True
 
@@ -260,10 +264,12 @@ class Human(threading.Thread, Auxiliary):
                     x, y = self.coordinates.next()
                     move_mouse(x, y)
                     double_click(x, y)
-                else:
+
+                if not is_ultrafast:
                     # make random move
                     x, y = self.coordinates.random()
                     move_mouse(x, y)
+                    # click_mouse(x, y)
 
             if self.do_click_buttons:
                 USER32.EnumWindows(EnumWindowsProc(foreach_window), 0)
