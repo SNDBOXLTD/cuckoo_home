@@ -18,7 +18,7 @@ from lib.common.defines import THREAD_ALL_ACCESS, PROCESS_ALL_ACCESS
 from lib.common.exceptions import CuckooError
 from lib.common.results import upload_to_host
 from lib.core.ioctl import zer0m0n
-from lib.core.thunder import Thunder
+from lib.core.thunder import Thunder, PACKAGE_TO_PRELOADED_APPS
 
 log = logging.getLogger(__name__)
 
@@ -229,6 +229,12 @@ class Process(object):
         # Choose configuration
         if dict == type(driver_options):
             conf = driver_options
+
+        # switch from ultrafast to light
+        if conf.get("ultrafast") and package not in PACKAGE_TO_PRELOADED_APPS.keys():
+            conf["ultrafast"] = False
+            conf["light"] = True
+
         log.info("thunder configuration: [%s]", str(conf))
         log.info("[2] thunder configuration: [%s]", str(driver_options))
 

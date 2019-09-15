@@ -181,7 +181,7 @@ class Thunder(object):
         # Order is crucial, same in the driver it self
         self._configuration = configuration
         self._configuration_order = ["SSDT", "TIME", "REGISTRY", "FILES",
-                                     "EXTRA", "LOGGING", "AGGRESSIVE", "RPC", "ULTRAFAST", "MEMDUMP"]
+                                     "EXTRA", "LOGGING", "AGGRESSIVE", "RPC", "ULTRAFAST", "LIGHT", "MEMDUMP"]
 
         # General configurations
         self._driver_pipe_name = "\\\\.\\Thunder"
