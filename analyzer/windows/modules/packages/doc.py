@@ -3,8 +3,13 @@
 # This file is part of Cuckoo Sandbox - http://www.cuckoosandbox.org
 # See the file 'docs/LICENSE' for copying permission.
 
+import os
+import logging
+
 from lib.common.abstracts import Package
 from lib.common.rand import random_string
+
+log = logging.getLogger(__name__)
 
 
 class DOC(Package):
@@ -19,6 +24,13 @@ class DOC(Package):
     ]
 
     def start(self, path):
+
+        # rename dotm to doc, so no new instance is created
+        if path.endswith(".dotm"):
+            os.rename(path, path + ".doc")
+            path += ".doc"
+            log.info("Submitted file is using dotm extension, added .doc")
+
         self._allow_embedded_flash()
         # start sample similar to generic package
         # TODO: Use Generic package code
