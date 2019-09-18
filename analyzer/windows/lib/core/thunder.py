@@ -100,6 +100,7 @@ class SignatureBuffer(object):
         ("excel.exe", "winword.exe", MONITOR_REASON_ANY),
         ("excel.exe", "outlook.exe", MONITOR_REASON_ANY),
         ("excel.exe", "msiexec.exe", MONITOR_REASON_ANY),
+        ("excel.exe", "mshta.exe", MONITOR_REASON_ANY),
         ("WmiPrvSe.exe", "powershell.exe", MONITOR_REASON_ANY),
     ]
 
