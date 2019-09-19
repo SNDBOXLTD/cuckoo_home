@@ -102,6 +102,8 @@ class SignatureBuffer(object):
         ("excel.exe", "msiexec.exe", MONITOR_REASON_ANY),
         ("excel.exe", "mshta.exe", MONITOR_REASON_ANY),
         ("WmiPrvSe.exe", "powershell.exe", MONITOR_REASON_ANY),
+        ("excel.exe", "WMIC.exe", MONITOR_REASON_ANY),
+        ("winword.exe", "WMIC.exe", MONITOR_REASON_ANY)
     ]
 
     SINGLE_PROCESS_SIG = [
@@ -110,6 +112,7 @@ class SignatureBuffer(object):
         ("CaLc.EXE", MONITOR_REASON_ANY),
         ("powershell.exe", MONITOR_REASON_CREATE),
         ("cmd.exe", MONITOR_REASON_CREATE),
+        ("wscript.exe", MONITOR_REASON_CREATE)
     ]
 
     TYPE_ONE_PROCESS = 1
