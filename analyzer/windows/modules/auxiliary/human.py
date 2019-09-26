@@ -103,11 +103,10 @@ def get_office_window(hwnd, lparam):
     '''
     if USER32.IsWindowVisible(hwnd):
         text = get_window_text(hwnd)
-        # TODO Would " - Microsoft (Word|Excel|PowerPoint)$" be better?
-        if re.search("- (Microsoft|Word|Excel|PowerPoint)", text):
+        if re.search("(Microsoft|Word|Excel|PowerPoint)", text):
             USER32.SendNotifyMessageW(hwnd, WM_CLOSE, None, None)
             KERNEL32.Sleep(1000)
-            log.info("Closed Office window.")
+            log.info("Closed Office window: %s", text)
     return True
 
 
@@ -257,7 +256,12 @@ class Human(threading.Thread, Auxiliary):
                     log.exception("failed to extract window name")
                     pass
 
-                if "word" in fg_window_name:
+                # make the office window on front
+                if fg_window_name == "":
+                    x, y = self.coordinates.center()
+                    click_mouse(x, y)
+
+                if "word" in fg_window_name or "excel" in fg_window_name:
                     if not is_full_screen:
                         set_full_screen(hwnd)
                         is_full_screen = True
