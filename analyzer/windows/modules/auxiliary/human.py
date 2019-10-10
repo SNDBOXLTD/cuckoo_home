@@ -132,21 +132,22 @@ def click_mouse(x, y):
 
 def double_click(x, y):
     click_mouse(x, y)
-    KERNEL32.Sleep(50)
+    KERNEL32.Sleep(60)
     click_mouse(x, y)
 
 
 def set_full_screen(hwnd):
+    log.info("set full screen")
     SW_MAXIMISE = 3
     USER32.ShowWindow(hwnd, SW_MAXIMISE)
-    KERNEL32.Sleep(100)
+    KERNEL32.Sleep(120)
 
 
 class Coordinates(object):
     '''window coordinates helper class. '''
 
     X_JUMPS = 55
-    Y_JUMPS = 60
+    Y_JUMPS = 55
 
     def __init__(self, x_padding, y_padding):
         """
@@ -182,11 +183,15 @@ class Coordinates(object):
 
     def center(self):
         '''Return center screen cords.'''
-        return self.max_x / 2, self.max_y / 2
+        x, y = int(self.max_x / 2), int(self.max_y / 2)
+        log.info("center (%d, %d)", x, y)
+        return x, y
 
     def random(self):
         '''Return random (x, y) cords. '''
-        return random.randint(0, self.max_x), random.randint(0, self.max_y)
+        x, y = random.randint(0, self.max_x), random.randint(0, self.max_y)
+        log.info("random (%d, %d)", x, y)
+        return x, y
 
 
 class Human(threading.Thread, Auxiliary):
@@ -200,6 +205,8 @@ class Human(threading.Thread, Auxiliary):
         self.coordinates = Coordinates(170, 300)
 
     def parse_options(self):
+        self.is_ultrafast = self.options.get("driver_ultrafast", False)
+        
         # Global disable flag.
         if "human" in self.options:
             self.do_move_mouse = int(self.options["human"])
@@ -224,16 +231,16 @@ class Human(threading.Thread, Auxiliary):
         self.do_run = False
 
     def run(self):
-        # human starts before the sample invocation, wait for 8s to start
-        minimal_timeout = KERNEL32.GetTickCount() + 2000
+        # human starts before the sample invocation, wait for 3s to start
+        minimal_timeout = KERNEL32.GetTickCount() + 3000
         # set office close timeout after 2/3 of analysis (in milliseconds)
         office_close_sec = int(self.options.get("timeout") * (3. / 4) * 1000)
         office_close_timeout = KERNEL32.GetTickCount() + office_close_sec
         is_office_close = False
         is_full_screen = False
-        is_ultrafast = self.options.get("timeout") == 25
+        
         # adaptive sleep timer
-        sleep = 50 if is_ultrafast else 1000
+        sleep = 50 if self.is_ultrafast else 750
 
         while self.do_run:
 
@@ -257,9 +264,12 @@ class Human(threading.Thread, Auxiliary):
                     pass
 
                 # make the office window on front
-                if fg_window_name == "":
+                if fg_window_name in ["", "program manager"]:
                     x, y = self.coordinates.center()
                     click_mouse(x, y)
+                    continue
+                else:
+                    log.info("fg_window_name: %s", fg_window_name)
 
                 if "word" in fg_window_name or "excel" in fg_window_name:
                     if not is_full_screen:
@@ -269,7 +279,7 @@ class Human(threading.Thread, Auxiliary):
                     move_mouse(x, y)
                     double_click(x, y)
 
-                if not is_ultrafast:
+                elif not self.is_ultrafast:
                     # make random move
                     x, y = self.coordinates.random()
                     move_mouse(x, y)
