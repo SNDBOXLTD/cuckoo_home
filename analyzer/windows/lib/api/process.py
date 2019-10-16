@@ -230,10 +230,11 @@ class Process(object):
         if dict == type(driver_options):
             conf = driver_options
 
-        # switch from ultrafast to light
+        # switch from ultrafast to light, turn off rpc
         if conf.get("ultrafast") and package not in PACKAGE_TO_PRELOADED_APPS.keys():
             conf["ultrafast"] = False
             conf["light"] = True
+            conf["rpc"] = False
 
         log.info("thunder configuration: [%s]", str(conf))
         log.info("[2] thunder configuration: [%s]", str(driver_options))
