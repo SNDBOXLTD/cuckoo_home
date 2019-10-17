@@ -6,3 +6,4 @@ storage/
 status/
 conf/
 log/
+Pipfile*

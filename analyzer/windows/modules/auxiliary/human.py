@@ -50,7 +50,8 @@ def foreach_child(hwnd, lparam):
         "allow access",
         "remind me later",
         "save", "sauvegarder",
-        "update"
+        "update",
+        "allow",
     ]
 
     # List of buttons labels to not click.
@@ -126,8 +127,9 @@ def move_mouse(x, y):
 
 
 def click_mouse(x, y):
+    log.debug("click_mouse (%d, %d)", x, y)
     USER32.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, x, y, 0, 0)
-    USER32.mouse_event(win32con.MOUSEEVENTF_LEFTUP, x, y, 0, 0)
+    USER32.mouse_event(win32con.MOUSEEVENTF_LEFTUP, x, y, 0, 0) 
 
 
 def double_click(x, y):
@@ -141,6 +143,15 @@ def set_full_screen(hwnd):
     SW_MAXIMISE = 3
     USER32.ShowWindow(hwnd, SW_MAXIMISE)
     KERNEL32.Sleep(120)
+
+
+def click_button(key):
+    """Simulate key press
+    """
+    log.debug("click_button (%d)", key)
+    USER32.keybd_event(key, 0, 0, 0)
+    KERNEL32.Sleep(60)
+    USER32.keybd_event(key, 0, win32con.KEYEVENTF_KEYUP, 0)
 
 
 class Coordinates(object):
@@ -206,7 +217,7 @@ class Human(threading.Thread, Auxiliary):
 
     def parse_options(self):
         self.is_ultrafast = self.options.get("driver_ultrafast", False)
-        
+
         # Global disable flag.
         if "human" in self.options:
             self.do_move_mouse = int(self.options["human"])
@@ -238,7 +249,8 @@ class Human(threading.Thread, Auxiliary):
         office_close_timeout = KERNEL32.GetTickCount() + office_close_sec
         is_office_close = False
         is_full_screen = False
-        
+        pdf_clicks_ctr = 10
+
         # adaptive sleep timer
         sleep = 50 if self.is_ultrafast else 750
 
@@ -266,6 +278,7 @@ class Human(threading.Thread, Auxiliary):
                 # make the office window on front
                 if fg_window_name in ["", "program manager"]:
                     x, y = self.coordinates.center()
+                    move_mouse(x, y)
                     click_mouse(x, y)
                     continue
                 else:
@@ -279,11 +292,36 @@ class Human(threading.Thread, Auxiliary):
                     move_mouse(x, y)
                     double_click(x, y)
 
-                elif not self.is_ultrafast:
+                elif "powerpoint" in fg_window_name:
+                    if not is_full_screen:
+                        set_full_screen(hwnd)
+                        is_full_screen = True
+                    x, y = self.coordinates.center()
+                    move_mouse(x, y)
+                    click_mouse(x, y)
+
+                elif "acrobat reader" in fg_window_name: 
+                    if not is_full_screen:
+                        set_full_screen(hwnd)
+                        is_full_screen = True
+                        # place cursor on top left
+                        x, y = 120, 200
+                        move_mouse(x, y)
+                        click_mouse(x, y)
+                    
+                    if pdf_clicks_ctr > 0:
+                        # press tab
+                        click_button(win32con.VK_TAB)
+                        # press enter
+                        click_button(win32con.VK_RETURN)
+                        pdf_clicks_ctr = pdf_clicks_ctr - 1
+                        # wait for result
+                        KERNEL32.Sleep(1000)
+
+                else:
                     # make random move
                     x, y = self.coordinates.random()
                     move_mouse(x, y)
-                    # click_mouse(x, y)
 
             if self.do_click_buttons:
                 USER32.EnumWindows(EnumWindowsProc(foreach_window), 0)
