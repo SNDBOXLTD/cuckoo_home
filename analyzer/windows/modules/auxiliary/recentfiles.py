@@ -17,7 +17,7 @@ from lib.common.registry import set_regkey_full
 log = logging.getLogger(__name__)
 
 class RecentFiles(Auxiliary):
-    """Populates the Desktop with recent files in order to combat recent
+    """Populate the Desktop with recent files in order to combat recent
     anti-sandbox measures."""
 
     extensions = [
@@ -65,7 +65,7 @@ class RecentFiles(Auxiliary):
             SHELL32.SHAddToRecentDocs(SHARD_PATHA, filepath)
 
             set_regkey_full(
-                "HKEY_CURRENT_USER\\Software\\Microsoft\\Office\\12.0\\"
+                "HKEY_CURRENT_USER\\Software\\Microsoft\\Office\\14.0\\"
                 "Word\\File MRU\\Item %d" % (idx + 1),
                 "REG_SZ", "[F00000000][T01D1C40000000000]*%s" % filepath,
             )
