@@ -25,15 +25,15 @@ class PDF(Package):
     REGKEYS = [
         [
             HKEY_LOCAL_MACHINE,
-            "SOFTWARE\\Adobe\\Acrobat Reader\\9.0\\AdobeViewer",
+            "SOFTWARE\\Adobe\\Acrobat Reader\\DC\\AdobeViewer",
             {
-                # Accept EULA for Adobe Reader 9.0.
+                # Accept EULA for Adobe Reader DC.
                 "EULA": 1,
             },
         ],
         [
             HKEY_LOCAL_MACHINE,
-            "SOFTWARE\\Policies\\Adobe\\Acrobat Reader\\9.0\\FeatureLockDown\\cDefaultLaunchAttachmentPerms",
+            "SOFTWARE\\Policies\\Adobe\\Acrobat Reader\\DC\\FeatureLockDown\\cDefaultLaunchAttachmentPerms",
             {
                 # The file X may contain programs, macros, or viruses that
                 # could potentially harm your computer. Open the file only if
@@ -47,10 +47,19 @@ class PDF(Package):
         ],
         [
             HKEY_CURRENT_USER,
-            "SOFTWARE\\Adobe\\Acrobat Reader\\9.0\\AdobeViewer",
+            "SOFTWARE\\Adobe\\Acrobat Reader\\DC\\AdobeViewer",
             {
-                # Accept EULA for Adobe Reader 9.0.
+                # Accept EULA for Adobe Reader DC.
                 "EULA": 1,
+            },
+        ],
+        [
+            HKEY_CURRENT_USER,
+            "SOFTWARE\\Adobe\\Acrobat Reader\\DC\\FTE",
+            {
+                # Hide Chrome extention window
+                "bChromeExtnFTEShown": 1,
+                "bChromeExtnFTEVal": 0,
             },
         ],
     ]
