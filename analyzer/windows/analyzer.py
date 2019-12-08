@@ -137,6 +137,7 @@ class Files(object):
         while self.files:
             self.delete_file(self.files.keys()[0])
 
+
 class ProcessList(object):
     def __init__(self):
         self.pids = []
@@ -179,6 +180,7 @@ class ProcessList(object):
 
         if pid in self.pids_notrack:
             self.pids_notrack.remove(pid)
+
 
 class CommandPipeHandler(object):
     """Pipe Handler.
@@ -414,7 +416,7 @@ class CommandPipeHandler(object):
                 self.pid, command, arguments = data.strip().split(":", 2)
 
             fn = getattr(self, "_handle_%s" % command.lower(), None)
-            #log.info("Received command: [%s]", command)
+            # log.info("Received command: [%s]", command)
             if not fn:
                 # log.critical("Unknown command received from the monitor: %r", data.strip())
                 pass
@@ -522,10 +524,9 @@ class Analyzer(object):
         self.log_pipe_server.daemon = True
         self.log_pipe_server.start()
 
-
         # General ones, for configuration to send later to package
-        #self.config.options["dispatcherpipe"] =  self.config.logpipe  # DISPATCHER
-        #self.config.options["forwarderpipe"] = self.config.pipe  # FORWARDER
+        # self.config.options["dispatcherpipe"] =  self.config.logpipe  # DISPATCHER
+        # self.config.options["forwarderpipe"] = self.config.pipe  # FORWARDER
         self.config.options["dispatcherpipe"] = self.config.pipe  # DISPATCHER
         self.config.options["forwarderpipe"] = self.config.logpipe  # FORWARDER
         self.config.options["kernel_logpipe"] = "\\\\.\\%s" % (random_string(16, 32))
@@ -611,7 +612,7 @@ class Analyzer(object):
 
         # Try to import the analysis package.
         try:
-            __import__(package_name, globals(), locals(), ["dummy"], -1)
+            package_module = __import__(package_name, globals(), locals(), ["dummy"], -1)
         # If it fails, we need to abort the analysis.
         except ImportError:
             raise CuckooError("Unable to import package \"{0}\", does "
@@ -620,12 +621,13 @@ class Analyzer(object):
         # Initialize the package parent abstract.
         Package()
 
-        # Enumerate the abstract subclasses.
-        try:
-            package_class = Package.__subclasses__()[0]
-        except IndexError as e:
+        # Find the package class, the file name does not always equal the class name (eg doc.py -> Class _DOC_)
+        class_name = next((attr for attr in dir(package_module) if attr.lower() == package.lower()), None)
+        if not class_name:
             raise CuckooError("Unable to select package class "
-                              "(package={0}): {1}".format(package_name, e))
+                              "(package={0})".format(package_name))
+
+        package_class = getattr(package_module, class_name)
 
         # Initialize the analysis package.
         log.debug("arguments options: [%s]", str(self.config.options))
@@ -657,7 +659,7 @@ class Analyzer(object):
         for module in Auxiliary.__subclasses__():
             # Try to start the auxiliary module.
             try:
-                self.config.options['timeout'] = self.config.timeout # pass timeout to aux modules
+                self.config.options['timeout'] = self.config.timeout  # pass timeout to aux modules
                 aux = module(options=self.config.options, analyzer=self)
                 aux_avail.append(aux)
                 aux.init()
@@ -688,7 +690,6 @@ class Analyzer(object):
         # Start analysis package. If for any reason, the execution of the
         # analysis package fails, we have to abort the analysis.
         pids = self.package.start(self.target)
-
 
         # If the analysis package returned a list of process identifiers, we
         # add them to the list of monitored processes and enable the process monitor.
@@ -828,6 +829,7 @@ class Analyzer(object):
         # Let's invoke the completion procedure.
         self.complete()
         return True
+
 
 if __name__ == "__main__":
     success = False
