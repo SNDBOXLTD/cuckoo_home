@@ -10,7 +10,8 @@ from lib.common.abstracts import Package
 
 log = logging.getLogger(__name__)
 
-class Javascript(Package):
+
+class Js(Package):
     """Javascript analysis package."""
     PATHS = [
         ("System32", "wscript.exe"),
