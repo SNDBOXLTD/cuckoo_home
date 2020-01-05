@@ -126,39 +126,39 @@ class SignatureBuffer(object):
     def get_sig_buff(self):
         buffer = ""
         # One process
-        
-        # Single process 
+
+        # Single process
         for proc_name, reason in self.SINGLE_PROCESS_SIG:
-            proc_name = proc_name.encode("utf-16-le") # Unicode WCHAR
-            
+            proc_name = proc_name.encode("utf-16-le")  # Unicode WCHAR
+
             s = ""
-            s += struct.pack("I", self.TYPE_ONE_PROCESS) # Type
+            s += struct.pack("I", self.TYPE_ONE_PROCESS)  # Type
             s += struct.pack("I", reason)
             s += struct.pack("64s", proc_name)
-            
+
             # Set length as first parameter
             s = struct.pack("I", len(s) + 4) + s
-            
+
             # Add to buffer
             buffer += s
-            
+
         # Relationship
         for parent_proc_name, child_proc_name, reason in self.PROCESS_RELATIONSHIP_SIG:
-            parent_proc_name = parent_proc_name.encode("utf-16-le") # Unicode WCHAR
-            child_proc_name = child_proc_name.encode("utf-16-le") # Unicode WCHAR
-            
+            parent_proc_name = parent_proc_name.encode("utf-16-le")  # Unicode WCHAR
+            child_proc_name = child_proc_name.encode("utf-16-le")  # Unicode WCHAR
+
             s = ""
             s += struct.pack("I", self.TYPE_RELATIONSHIP)
             s += struct.pack("I", reason)
             s += struct.pack("64s", parent_proc_name)
             s += struct.pack("64s", child_proc_name)
-            
+
             # Set length as first parameter
             s = struct.pack("I", len(s) + 4) + s
-            
+
             # Add to buffer
             buffer += s
-            
+
         # print buffer
         # log.debug(buffer)
         # log.debug(buffer.encode("hex"))
@@ -194,7 +194,7 @@ class Thunder(object):
         # Binary configuration, exactly as in the binary directory
         self._installer_dll_name = "WdfCoinstaller01009.dll"
         self._installer_exe_name = "Strike.exe"
-        self._driver_name = "Thunder.sys"
+        self._driver_name = "Thunder.sys" if not self.is_x64 else "Thunder64.sys"
         self._information_file = "minimal.inf"
         self._log_dispatcher_name = "log_dispatcher.pyw"
 
@@ -202,7 +202,6 @@ class Thunder(object):
         self.package = package
         log.debug("thunder using package: %s", self.package)
         self.preloaded_pids = get_preloaded_pids()
-
 
     def _check_preloaded_pid(self, pid):
         """check preloaded pid. 
@@ -422,7 +421,6 @@ class Thunder(object):
         log.info("New pipename initialized: [%s]", self._driver_log_pipe_name)
         return self.initialize_ultrafast_signatures()
 
-
     def initialize_ultrafast_signatures(self):
         if not self._configuration.get("ultrafast", False):
             return True
@@ -474,7 +472,8 @@ class Thunder(object):
         number = ""
         log.info("Configuration dict: [%s]", str(self._configuration))
         for conf_title in self._configuration_order:
-            val = self._configuration.get(conf_title.lower(), False) or self._configuration.get(conf_title.upper(), False)
+            val = self._configuration.get(
+                conf_title.lower(), False) or self._configuration.get(conf_title.upper(), False)
             log.info("Driver Configuration [%s] : [%s]", conf_title, str(val))
             if val:
                 number = "1" + number
