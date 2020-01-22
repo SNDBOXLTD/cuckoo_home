@@ -194,7 +194,7 @@ class Thunder(object):
         # Binary configuration, exactly as in the binary directory
         self._installer_dll_name = "WdfCoinstaller01009.dll"
         self._installer_exe_name = "Strike.exe"
-        self._driver_name = "Thunder.sys" if not self.is_x64 else "Thunder64.sys"
+        self._driver_name = "Thunder.sys"
         self._information_file = "minimal.inf"
         self._log_dispatcher_name = "log_dispatcher.pyw"
 
@@ -233,6 +233,17 @@ class Thunder(object):
         # return KERNEL32.DeviceIoControl(device, ioctl, to_send, length, None) # Not working with kernel32 like that
         return win32file.DeviceIoControl(device, ioctl, to_send, length, None)
 
+    def _place_driver(self):
+        """
+        Places the driver for the current architecture in "bin/Thunder.sys"
+
+        The installed driver expects to be called "Thunder.sys" on disk, therefore trying to install a driver with a
+        different name directly will not work.
+        :return: None
+        """
+        matching_arch_driver = "Thunder64.sys" if self.is_x64 else "Thunder32.sys"
+        os.rename(os.path.join("bin", matching_arch_driver), os.path.join("bin", self._driver_name))
+
     def check_components(self):
         installing_components = [
             self._installer_dll_name,
@@ -252,8 +263,10 @@ class Thunder(object):
 
     def install(self):
         log.info("Thunder - Installation initialized")
-        # Sanity
 
+        self._place_driver()
+
+        # Sanity
         if not self.check_components():
             return False
 
