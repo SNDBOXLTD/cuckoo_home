@@ -126,39 +126,39 @@ class SignatureBuffer(object):
     def get_sig_buff(self):
         buffer = ""
         # One process
-        
-        # Single process 
+
+        # Single process
         for proc_name, reason in self.SINGLE_PROCESS_SIG:
-            proc_name = proc_name.encode("utf-16-le") # Unicode WCHAR
-            
+            proc_name = proc_name.encode("utf-16-le")  # Unicode WCHAR
+
             s = ""
-            s += struct.pack("I", self.TYPE_ONE_PROCESS) # Type
+            s += struct.pack("I", self.TYPE_ONE_PROCESS)  # Type
             s += struct.pack("I", reason)
             s += struct.pack("64s", proc_name)
-            
+
             # Set length as first parameter
             s = struct.pack("I", len(s) + 4) + s
-            
+
             # Add to buffer
             buffer += s
-            
+
         # Relationship
         for parent_proc_name, child_proc_name, reason in self.PROCESS_RELATIONSHIP_SIG:
-            parent_proc_name = parent_proc_name.encode("utf-16-le") # Unicode WCHAR
-            child_proc_name = child_proc_name.encode("utf-16-le") # Unicode WCHAR
-            
+            parent_proc_name = parent_proc_name.encode("utf-16-le")  # Unicode WCHAR
+            child_proc_name = child_proc_name.encode("utf-16-le")  # Unicode WCHAR
+
             s = ""
             s += struct.pack("I", self.TYPE_RELATIONSHIP)
             s += struct.pack("I", reason)
             s += struct.pack("64s", parent_proc_name)
             s += struct.pack("64s", child_proc_name)
-            
+
             # Set length as first parameter
             s = struct.pack("I", len(s) + 4) + s
-            
+
             # Add to buffer
             buffer += s
-            
+
         # print buffer
         # log.debug(buffer)
         # log.debug(buffer.encode("hex"))
@@ -203,7 +203,6 @@ class Thunder(object):
         log.debug("thunder using package: %s", self.package)
         self.preloaded_pids = get_preloaded_pids()
 
-
     def _check_preloaded_pid(self, pid):
         """check preloaded pid. 
         Arguments:
@@ -234,6 +233,17 @@ class Thunder(object):
         # return KERNEL32.DeviceIoControl(device, ioctl, to_send, length, None) # Not working with kernel32 like that
         return win32file.DeviceIoControl(device, ioctl, to_send, length, None)
 
+    def _place_driver(self):
+        """
+        Places the driver for the current architecture in "bin/Thunder.sys"
+
+        The installed driver expects to be called "Thunder.sys" on disk, therefore trying to install a driver with a
+        different name directly will not work.
+        :return: None
+        """
+        matching_arch_driver = "Thunder64.sys" if self.is_x64 else "Thunder32.sys"
+        os.rename(os.path.join("bin", matching_arch_driver), os.path.join("bin", self._driver_name))
+
     def check_components(self):
         installing_components = [
             self._installer_dll_name,
@@ -253,8 +263,10 @@ class Thunder(object):
 
     def install(self):
         log.info("Thunder - Installation initialized")
-        # Sanity
 
+        self._place_driver()
+
+        # Sanity
         if not self.check_components():
             return False
 
@@ -422,7 +434,6 @@ class Thunder(object):
         log.info("New pipename initialized: [%s]", self._driver_log_pipe_name)
         return self.initialize_ultrafast_signatures()
 
-
     def initialize_ultrafast_signatures(self):
         if not self._configuration.get("ultrafast", False):
             return True
@@ -474,7 +485,8 @@ class Thunder(object):
         number = ""
         log.info("Configuration dict: [%s]", str(self._configuration))
         for conf_title in self._configuration_order:
-            val = self._configuration.get(conf_title.lower(), False) or self._configuration.get(conf_title.upper(), False)
+            val = self._configuration.get(
+                conf_title.lower(), False) or self._configuration.get(conf_title.upper(), False)
             log.info("Driver Configuration [%s] : [%s]", conf_title, str(val))
             if val:
                 number = "1" + number

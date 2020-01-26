@@ -4,19 +4,15 @@
 # See the file 'docs/LICENSE' for copying permission.
 
 import os
-import shlex
-import shutil
 
 from lib.common.abstracts import Package
 
+
 class Dll(Package):
     """DLL analysis package."""
-    PATHS = [
-        ("bin", "sndll32.exe"),
-    ]
 
-    def start(self, path):
-        sndll = self.get_path("sndll32.exe")
+    def _execute_exports(self, path, architecture):
+        sndll = os.path.join("bin", "sndll32.exe" if architecture == '32' else "sndll64.exe")
 
         # Check file extension.
         ext = os.path.splitext(path)[-1].lower()
@@ -29,6 +25,9 @@ class Dll(Package):
             os.rename(path, new_path)
             path = new_path
 
-        args = ["%s" % (path)]
+        args = ["%s" % path]
 
         return self.execute(sndll, args=args)
+
+    def start(self, path):
+        return self._execute_exports(path, '32')
