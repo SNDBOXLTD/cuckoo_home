@@ -236,13 +236,16 @@ class Thunder(object):
     def _place_driver(self):
         """
         Places the driver for the current architecture in "bin/Thunder.sys"
+        Remove other driver version
 
         The installed driver expects to be called "Thunder.sys" on disk, therefore trying to install a driver with a
         different name directly will not work.
         :return: None
         """
         matching_arch_driver = "Thunder64.sys" if self.is_x64 else "Thunder32.sys"
+        to_remove_driver = "Thunder64.sys" if not self.is_x64 else "Thunder32.sys"
         os.rename(os.path.join("bin", matching_arch_driver), os.path.join("bin", self._driver_name))
+        os.remove(os.path.join("bin", to_remove_driver))
 
     def check_components(self):
         installing_components = [
