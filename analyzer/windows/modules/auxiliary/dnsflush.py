@@ -26,7 +26,6 @@ class DnsFlush(Auxiliary):
             socket.gethostbyname(hostname)
         except:
             log.exception("Failed to verify network connection.")
-            raise CuckooPackageError("Unable to verify network, analysis aborted.")
         # dns flush
         try:
             subprocess_checkcall(["ipconfig.exe", "/flushdns"])
