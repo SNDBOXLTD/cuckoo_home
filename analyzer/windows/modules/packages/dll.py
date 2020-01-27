@@ -4,6 +4,7 @@
 # See the file 'docs/LICENSE' for copying permission.
 
 import os
+import base64
 
 from lib.common.abstracts import Package
 
@@ -26,6 +27,12 @@ class Dll(Package):
             path = new_path
 
         args = ["%s" % path]
+
+        export_settings = self.options.get("dll_export")
+        if export_settings:
+            # handle execution of a specific export
+            decode_settings = base64.b64decode(export_settings)
+            args.extend(decode_settings.split())
 
         return self.execute(sndll, args=args)
 
