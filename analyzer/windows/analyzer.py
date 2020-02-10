@@ -553,14 +553,34 @@ class Analyzer(object):
         """Allows an auxiliary module to stop the analysis."""
         self.do_run = False
 
+    def _collect_memdumps(self):
+        log.info("collect memdump dropped files")
+        WIN_FOLDER = "c:\\windows"
+        MEM_DUMP_EXTENTION = ".dmp"
+        for filename in os.listdir(WIN_FOLDER):
+            if filename.endswith(MEM_DUMP_EXTENTION):
+                file_path = os.path.join(WIN_FOLDER, filename)
+                if not os.path.isfile(file_path):
+                    log.error("missing filepath: %s", file_path)
+                    continue
+                log.info("found memdump file: %s", file_path)
+                self.files.add_file(file_path)
+
     def complete(self):
         """End analysis."""
         # Stop the Pipe Servers.
         self.command_pipe.stop()
         self.log_pipe_server.stop()
 
+        # Collect memdump files
+        if "memdump" in self.config.options["driver_options"]:
+            # sleep in order for ioctl call (thunder.py) to finish
+            KERNEL32.Sleep(5000)
+            self._collect_memdumps()
+
         # Dump all the notified files.
         self.files.dump_files()
+
 
         # Hell yeah.
         log.info("Analysis completed.")

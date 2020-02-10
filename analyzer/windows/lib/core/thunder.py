@@ -177,6 +177,7 @@ class Thunder(object):
         self._ioctl_communication_new_pipe_name = 0x222410
         self._ioctl_stop_monitoring = 0x22241C
         self._ioctl_thunder_sig_process = 0x222428
+        self._ioctl_memory_dump = 0x22242C
 
         # Order is crucial, same in the driver it self
         self._configuration = configuration
@@ -456,6 +457,23 @@ class Thunder(object):
         log.info("initialize_signatures initialized: [%s]", self._driver_log_pipe_name)
         return True
 
+    def initialize_memory_dump(self):
+        if not self._configuration.get("memdump", False):
+            return True
+
+        try:
+            self._send_ioctl(self._driver_communication_device, self._ioctl_memory_dump, "dummymessage")
+        except Exception, e:
+            error_code = KERNEL32.GetLastError()
+            log.error("Failed initialize_memory_dump, GLE: [%d]-[%s], dev: [%s]", error_code,
+                      get_error_string(error_code), self._driver_log_pipe_name)
+            log.error(str(e))
+            raw_input()
+            return False
+
+        log.info("initialize_memory_dump initialized: [%s]", self._driver_log_pipe_name)
+        return True
+
     def monitor(self):
         # Initialize device
         binary_conf = ""
@@ -501,7 +519,7 @@ class Thunder(object):
     def thread_wait_finish(self):
         # Wait for shutdown mutex to be created
         while True:
-            time.sleep(1)
+            KERNEL32.Sleep(100)
             # Create the shutdown mutex.
             mutex_handle = KERNEL32.OpenMutexA(0x00100000, False, SHUTDOWN_MUTEX)
 
@@ -509,6 +527,9 @@ class Thunder(object):
             if 0 != mutex_handle:
                 KERNEL32.CloseHandle(mutex_handle)
                 break
+
+        log.info("SHUTDOWN_MUTEX called! calling memdump")
+        self.initialize_memory_dump()
 
         # Stop monitoring
         self._send_ioctl(self._driver_communication_device, self._ioctl_stop_monitoring, "dummymessage")
