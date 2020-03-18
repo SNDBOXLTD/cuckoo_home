@@ -575,7 +575,7 @@ class Analyzer(object):
         # Collect memdump files
         if "memdump" in self.config.options["driver_options"]:
             # sleep in order for ioctl call (thunder.py) to finish
-            KERNEL32.Sleep(5000)
+            KERNEL32.Sleep(1000 * 10)
             self._collect_memdumps()
 
         # Dump all the notified files.
