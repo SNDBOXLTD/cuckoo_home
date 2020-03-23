@@ -91,11 +91,8 @@ class Files(object):
             return
 
         file_size = os.path.getsize(filepath)
-        # will_exceed_total = self.dumped_bytes + file_size > self.MAX_SIZE_TOTAL
-
-        # if file_size > self.MAX_SIZE_SINGLE or will_exceed_total:
-        #     log.info("File from path \"%s\" exceeded size limits", filepath)
-        #     return
+        if file_size > self.MAX_SIZE_SINGLE:
+            log.warning("File from path \"%s\" exceeded size limits (%s)", filepath, file_size)
 
         filename = "%s_%s" % (sha256[:16], os.path.basename(filepath))
         upload_path = os.path.join("files", filename)
