@@ -235,10 +235,6 @@ class Process(object):
             conf["ultrafast"] = False
             conf["light"] = True
 
-        if conf.get("memdump"):
-            conf["ultrafast"] = True
-            conf["rpc"] = True
-
         log.info("thunder configuration: [%s]", str(conf))
         log.info("[2] thunder configuration: [%s]", str(driver_options))
 
