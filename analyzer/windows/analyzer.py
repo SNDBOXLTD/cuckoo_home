@@ -572,7 +572,7 @@ class Analyzer(object):
         # Collect memdump files
         if "memdump" in self.config.options["driver_options"]:
             log.info("Allowing Memdump ioctl to finish, sleeping...")
-            KERNEL32.Sleep(1000 * 5)
+            KERNEL32.Sleep(1000 * 7)
             self._collect_memdumps()
 
         # Dump all the notified files.
@@ -717,7 +717,8 @@ class Analyzer(object):
         pids = self.package.start(self.target)
 
         process_monitoring_end = KERNEL32.GetTickCount()
-        log.debug("Monitored first process in {}s".format(str((process_monitoring_end - process_monitoring_start)/1000)))
+        log.debug("Monitored first process in {}s".format(
+            str((process_monitoring_end - process_monitoring_start)/1000)))
 
         # If the analysis package returned a list of process identifiers, we
         # add them to the list of monitored processes and enable the process monitor.

@@ -528,8 +528,8 @@ class Thunder(object):
                 KERNEL32.CloseHandle(mutex_handle)
                 break
 
-        # log.info("SHUTDOWN_MUTEX called! calling memdump")
-        # self.initialize_memory_dump()
+        log.info("SHUTDOWN_MUTEX called! calling memdump")
+        self.initialize_memory_dump()
 
         # Stop monitoring
         self._send_ioctl(self._driver_communication_device, self._ioctl_stop_monitoring, "dummymessage")
