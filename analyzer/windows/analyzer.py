@@ -554,14 +554,16 @@ class Analyzer(object):
         log.info("collect memdump dropped files")
         WIN_FOLDER = "c:\\windows"
         MEM_DUMP_EXTENTION = ".dmp"
+        memdump_count = 10000
         for filename in os.listdir(WIN_FOLDER):
-            if filename.endswith(MEM_DUMP_EXTENTION):
+            if filename.endswith(MEM_DUMP_EXTENTION) and memdump_count > 0:
                 file_path = os.path.join(WIN_FOLDER, filename)
                 if not os.path.isfile(file_path):
                     log.error("missing filepath: %s", file_path)
                     continue
                 log.info("found memdump file: %s", file_path)
                 self.files.add_file(file_path)
+                memdump_count -= 1
 
     def complete(self):
         """End analysis."""
