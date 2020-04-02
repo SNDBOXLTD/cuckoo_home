@@ -231,7 +231,7 @@ class Process(object):
             conf = driver_options
 
         # switch from ultrafast to light
-        if conf.get("ultrafast") and package not in PACKAGE_TO_PRELOADED_APPS.keys():
+        if conf.get("ultrafast") and not conf.get("memdump") and package not in PACKAGE_TO_PRELOADED_APPS.keys():
             conf["ultrafast"] = False
             conf["light"] = True
 
