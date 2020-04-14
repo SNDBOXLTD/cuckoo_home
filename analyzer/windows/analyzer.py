@@ -91,11 +91,8 @@ class Files(object):
             return
 
         file_size = os.path.getsize(filepath)
-        will_exceed_total = self.dumped_bytes + file_size > self.MAX_SIZE_TOTAL
-
-        if file_size > self.MAX_SIZE_SINGLE or will_exceed_total:
-            log.info("File from path \"%s\" exceeded size limits", filepath)
-            return
+        if file_size > self.MAX_SIZE_SINGLE:
+            log.warning("File from path \"%s\" exceeded size limits (%s)", filepath, file_size)
 
         filename = "%s_%s" % (sha256[:16], os.path.basename(filepath))
         upload_path = os.path.join("files", filename)
@@ -553,11 +550,32 @@ class Analyzer(object):
         """Allows an auxiliary module to stop the analysis."""
         self.do_run = False
 
+    def _collect_memdumps(self):
+        log.info("collect memdump dropped files")
+        WIN_FOLDER = "c:\\windows"
+        MEM_DUMP_EXTENTION = ".dmp"
+        memdump_count = 10000
+        for filename in os.listdir(WIN_FOLDER):
+            if filename.endswith(MEM_DUMP_EXTENTION) and memdump_count > 0:
+                file_path = os.path.join(WIN_FOLDER, filename)
+                if not os.path.isfile(file_path):
+                    log.error("missing filepath: %s", file_path)
+                    continue
+                log.info("found memdump file: %s", file_path)
+                self.files.add_file(file_path)
+                memdump_count -= 1
+
     def complete(self):
         """End analysis."""
         # Stop the Pipe Servers.
         self.command_pipe.stop()
         self.log_pipe_server.stop()
+
+        # Collect memdump files
+        if "memdump" in self.config.options["driver_options"]:
+            log.info("Allowing Memdump ioctl to finish, sleeping...")
+            KERNEL32.Sleep(1000 * 7)
+            self._collect_memdumps()
 
         # Dump all the notified files.
         self.files.dump_files()
@@ -701,7 +719,8 @@ class Analyzer(object):
         pids = self.package.start(self.target)
 
         process_monitoring_end = KERNEL32.GetTickCount()
-        log.debug("Monitored first process in {}s".format(str((process_monitoring_end - process_monitoring_start)/1000)))
+        log.debug("Monitored first process in {}s".format(
+            str((process_monitoring_end - process_monitoring_start)/1000)))
 
         # If the analysis package returned a list of process identifiers, we
         # add them to the list of monitored processes and enable the process monitor.
